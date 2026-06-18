@@ -84,7 +84,7 @@
   <section class="card">
     <div class="step"><b>2</b> Ranked prospects</div>
     <h3>Best opportunities first</h3>
-    <p class="sub">Uses each property's tax rate (this Westlake/Eanes data ≈ 1.84%); contingency fee 30% of first-year savings. Homestead-capped homes, or those at/below the comparable median, show no first-year savings.</p>
+    <p class="sub">Uses each property's actual combined taxing-unit rate; contingency fee 30% of first-year savings. Homestead-capped homes, or those at/below the comparable median, show no first-year savings.</p>
     <div class="summary" id="summary"></div>
     <div class="tbl-scroll">
       <table id="resTbl"><thead><tr>
@@ -100,7 +100,7 @@
   Demo tool · runs the same engine as the single-property view. Live data source: <code>TCAD appraisal-roll export</code>.<br/>Not legal or tax advice.
 </div>
 
-<script src="neighborhood-real.js?v=2"></script>
+<script src="neighborhood-real.js?v=3"></script>
 <script src="engine.js?v=2"></script>
 <script>
   var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
