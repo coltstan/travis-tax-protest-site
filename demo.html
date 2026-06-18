@@ -172,7 +172,8 @@
     <h3>Why your appraisal should be lower</h3>
     <div id="narrative"></div>
     <div class="actions">
-      <button class="btn btn-primary" id="genBtn">Generate protest packet</button>
+      <a class="btn btn-primary" id="startBtn" href="start.html">Start my protest →</a>
+      <button class="btn btn-ghost" id="genBtn">Generate protest packet</button>
       <button class="btn btn-ghost" id="printBtn">Print / save packet</button>
     </div>
   </section>
@@ -351,6 +352,7 @@
     document.getElementById("searchInput").value = p.addr;
     closeResults();
     renderSubject(p); renderTables(p, r); renderResult(p, r); renderNarrative(p, r);
+    document.getElementById("startBtn").href = "start.html?acct=" + p.acct;
     document.getElementById("packet").style.display = "none";
   }
 

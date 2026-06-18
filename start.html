@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travis Tax Protest — Start your protest</title>
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .wrap { max-width: 720px; margin: 0 auto; padding: 0 22px 70px; }
+  .head { padding: 40px 0 8px; text-align: center; }
+  .head h1 { font-size: clamp(26px, 4vw, 36px); }
+  .head p { color: var(--ink-soft); font-size: 16px; margin: 10px auto 0; max-width: 520px; }
+
+  .steps-bar { display: flex; gap: 8px; margin: 26px 0 0; }
+  .steps-bar .b { flex: 1; height: 5px; border-radius: 999px; background: var(--line-2); }
+  .steps-bar .b.on { background: var(--blue); }
+
+  .card { padding: 28px; margin-top: 22px; }
+  .step-h { font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .card h2 { font-size: 21px; margin-bottom: 6px; }
+  .card .sub { color: var(--ink-soft); font-size: 14.5px; margin: 0 0 18px; }
+
+  .search-wrap { position: relative; }
+  .search-results { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 30; max-height: 320px; overflow-y: auto; display: none; }
+  .search-results.open { display: block; }
+  .sr-item { padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 14px; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover { background: var(--blue-soft); }
+  .sr-item .a { font-size: 14px; color: var(--ink); font-weight: 500; }
+  .sr-item .v { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .sr-empty { padding: 13px 14px; color: var(--muted); font-size: 13.5px; }
+
+  .estimate { margin-top: 18px; padding: 22px; border-radius: 14px; background: var(--green-soft); border: 1px solid #cdeadd; text-align: center; display: none; }
+  .estimate.show { display: block; }
+  .estimate.none { background: var(--amber-soft); border-color: #f0e0bd; }
+  .estimate .big { font-family: var(--font-display); font-size: 34px; font-weight: 800; color: var(--green); letter-spacing: -1px; }
+  .estimate.none .big { color: var(--amber); font-size: 22px; }
+  .estimate .l { font-size: 13.5px; color: var(--ink-soft); margin-top: 4px; }
+
+  label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin: 14px 0 6px; }
+  input, .check { width: 100%; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 10px; font-family: var(--font-body); font-size: 15px; color: var(--ink); background: #fff; }
+  input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .terms { list-style: none; padding: 0; margin: 0 0 16px; }
+  .terms li { padding: 10px 0 10px 28px; position: relative; font-size: 14.5px; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
+  .terms li:last-child { border-bottom: none; }
+  .terms li::before { content: "✓"; position: absolute; left: 2px; color: var(--green); font-weight: 800; }
+  .terms li strong { color: var(--ink); }
+  .agree { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; color: var(--ink-soft); margin-top: 8px; }
+  .agree input { width: auto; margin-top: 3px; }
+
+  .review .r { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 14.5px; }
+  .review .r:last-child { border-bottom: none; }
+  .review .r .k { color: var(--muted); } .review .r .v { font-weight: 600; color: var(--ink); }
+
+  .nav-btns { display: flex; justify-content: space-between; margin-top: 22px; gap: 12px; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .micro { font-size: 12.5px; color: var(--muted); margin-top: 14px; text-align: center; }
+
+  .done { text-align: center; padding: 40px 24px; display: none; }
+  .done.show { display: block; }
+  .done .ok { width: 56px; height: 56px; border-radius: 50%; background: var(--green-soft); color: var(--green); display: grid; place-items: center; margin: 0 auto 16px; }
+  .done h2 { font-size: 24px; } .done p { color: var(--ink-soft); margin: 10px auto 0; max-width: 440px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-logo"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 11 12 4l8.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9.6V19h12.8V9.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11.4v4.8m0 0 1.9-1.9M12 16.2l-1.9-1.9" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">Travis Tax Protest</span></a>
+    <div class="nav-links"><a href="demo.html">Engine</a><a href="pricing.html">Pricing</a></div>
+  </div>
+</nav>
+
+<div class="wrap">
+  <div class="head">
+    <h1>Start your protest</h1>
+    <p>Three quick steps. No upfront cost — you pay 30% of your savings only if we lower your bill.</p>
+    <div class="steps-bar"><div class="b on" id="b1"></div><div class="b" id="b2"></div><div class="b" id="b3"></div></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <section class="card" id="s1">
+    <div class="step-h">Step 1 of 3</div>
+    <h2>Find your home</h2>
+    <p class="sub">We'll instantly estimate whether you're over-assessed, on real Travis County data.</p>
+    <div class="search-wrap">
+      <input id="search" placeholder="Enter your property address (ZIP 78746)" autocomplete="off" />
+      <div class="search-results" id="results"></div>
+    </div>
+    <div class="estimate" id="estimate"></div>
+    <div class="nav-btns"><span></span><button class="btn btn-primary" id="to2" disabled>Continue</button></div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="card" id="s2" style="display:none">
+    <div class="step-h">Step 2 of 3</div>
+    <h2>How it works</h2>
+    <p class="sub">Simple, contingency-based terms — the same model the big firms use, at a lower rate.</p>
+    <ul class="terms">
+      <li><strong>You pay nothing upfront.</strong> No fee unless we reduce your appraised value.</li>
+      <li><strong>Our fee is 30% of your first-year tax savings</strong> — less than the 35–50% most Texas firms charge.</li>
+      <li><strong>We handle it end to end</strong> — build the comparable-homes case, file your Notice of Protest, and represent you through the hearing.</li>
+      <li><strong>You authorize us as your agent</strong> for this protest (Texas Comptroller Form 50-162) — we'll send it to e-sign once we confirm your case.</li>
+      <li><strong>You're never locked in.</strong> Cancel any time before we file.</li>
+    </ul>
+    <label class="agree"><input type="checkbox" id="agree" /> I understand the 30% contingency terms and want to start my protest.</label>
+    <div class="nav-btns"><button class="btn btn-ghost" data-back="1">Back</button><button class="btn btn-primary" id="to3" disabled>Continue</button></div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="card" id="s3" style="display:none">
+    <div class="step-h">Step 3 of 3</div>
+    <h2>Your details</h2>
+    <p class="sub">So we can confirm your case and send your agreement to sign.</p>
+    <div class="row2">
+      <div><label for="fn">First name</label><input id="fn" /></div>
+      <div><label for="ln">Last name</label><input id="ln" /></div>
+    </div>
+    <div class="row2">
+      <div><label for="em">Email</label><input id="em" type="email" /></div>
+      <div><label for="ph">Phone</label><input id="ph" type="tel" /></div>
+    </div>
+    <div class="review" id="review" style="margin-top:18px"></div>
+    <label class="agree" style="margin-top:14px"><input type="checkbox" id="own" /> I own this property (or am authorized to act for the owner).</label>
+    <div class="nav-btns"><button class="btn btn-ghost" data-back="2">Back</button><button class="btn btn-primary" id="submit" disabled>Start my protest</button></div>
+    <div class="micro">This starts your application — no charge now. We'll confirm your case and send the agreement &amp; Form 50-162 to e-sign before anything is filed.</div>
+  </section>
+
+  <!-- DONE -->
+  <section class="card done" id="done">
+    <div class="ok"><svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></div>
+    <h2>You're on the list.</h2>
+    <p id="doneMsg"></p>
+    <div style="margin-top:22px"><a class="btn btn-primary" href="index.html">Back to home</a></div>
+  </section>
+</div>
+
+<div class="foot">
+  Travis Tax Protest · coltons@latierratx.com · Austin, TX<br/>
+  Not legal or tax advice. Savings are estimates until the protest is resolved.
+</div>
+
+<script src="properties.js"></script>
+<script src="engine.js"></script>
+<script>
+  var POOL = window.PROPERTIES || [];
+  var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var chosen = null, result = null;
+
+  // ---- step nav ----
+  function show(step) {
+    ["s1", "s2", "s3"].forEach(function (id, i) { document.getElementById(id).style.display = (i + 1 === step) ? "" : "none"; });
+    document.getElementById("b1").className = "b" + (step >= 1 ? " on" : "");
+    document.getElementById("b2").className = "b" + (step >= 2 ? " on" : "");
+    document.getElementById("b3").className = "b" + (step >= 3 ? " on" : "");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  document.getElementById("to2").addEventListener("click", function () { show(2); });
+  document.getElementById("to3").addEventListener("click", function () { show(3); fillReview(); });
+  [].slice.call(document.querySelectorAll("[data-back]")).forEach(function (b) { b.addEventListener("click", function () { show(+b.getAttribute("data-back")); }); });
+
+  // ---- search + estimate ----
+  var resEl = document.getElementById("results");
+  function pick(p) {
+    chosen = p; result = TTP.valuate(p, POOL);
+    document.getElementById("search").value = p.addr; resEl.classList.remove("open");
+    var est = document.getElementById("estimate");
+    if (result.win) {
+      est.className = "estimate show";
+      est.innerHTML = '<div class="big">~' + fmt(result.savings) + '/yr</div><div class="l">estimated savings · appraised ' + fmt(result.marketValue) + ' → proposed ' + fmt(result.proposed) + '</div>';
+    } else {
+      est.className = "estimate show none";
+      est.innerHTML = '<div class="big">Looks fairly assessed</div><div class="l">' + (result.cappedNoSavings ? "the homestead cap blocks savings this year — we\'ll watch it for next cycle" : "we don\'t see an over-assessment right now — start anyway and we\'ll keep monitoring") + '</div>';
+    }
+    document.getElementById("to2").disabled = false;
+  }
+  document.getElementById("search").addEventListener("input", function () {
+    var q = this.value.trim().toLowerCase();
+    document.getElementById("to2").disabled = true;
+    if (q.length < 2) { resEl.classList.remove("open"); return; }
+    var hits = [], i;
+    for (i = 0; i < POOL.length && hits.length < 8; i++) if (POOL[i].addr.toLowerCase().indexOf(q) !== -1) hits.push(POOL[i]);
+    if (!hits.length) { resEl.innerHTML = '<div class="sr-empty">We\'re live in ZIP 78746 today and expanding — enter your details on the next steps and we\'ll follow up for your area.</div>'; resEl.classList.add("open"); document.getElementById("to2").disabled = false; return; }
+    resEl.innerHTML = hits.map(function (h) { return '<div class="sr-item" data-i="' + POOL.indexOf(h) + '"><span class="a">' + esc(h.addr) + '</span><span class="v">' + fmt(h.marketValue) + '</span></div>'; }).join("");
+    resEl.classList.add("open");
+    [].slice.call(resEl.querySelectorAll(".sr-item")).forEach(function (el) { el.addEventListener("click", function () { pick(POOL[+el.getAttribute("data-i")]); }); });
+  });
+  document.addEventListener("click", function (e) { if (!e.target.closest(".search-wrap")) resEl.classList.remove("open"); });
+
+  // ---- step 2 / 3 gating ----
+  document.getElementById("agree").addEventListener("change", function () { document.getElementById("to3").disabled = !this.checked; });
+  function checkSubmit() {
+    var ok = document.getElementById("fn").value && document.getElementById("em").value && document.getElementById("own").checked;
+    document.getElementById("submit").disabled = !ok;
+  }
+  ["fn", "ln", "em", "ph"].forEach(function (id) { document.getElementById(id).addEventListener("input", checkSubmit); });
+  document.getElementById("own").addEventListener("change", checkSubmit);
+
+  function fillReview() {
+    var r = document.getElementById("review");
+    if (!chosen) { r.innerHTML = ""; return; }
+    r.innerHTML =
+      '<div class="r"><span class="k">Property</span><span class="v">' + esc(chosen.addr.split(",")[0]) + '</span></div>' +
+      '<div class="r"><span class="k">Appraised value</span><span class="v">' + fmt(chosen.marketValue) + '</span></div>' +
+      (result.win ? '<div class="r"><span class="k">Estimated savings</span><span class="v" style="color:var(--green)">~' + fmt(result.savings) + '/yr</span></div>' : '') +
+      '<div class="r"><span class="k">Our fee</span><span class="v">30% of savings · $0 if none</span></div>';
+  }
+
+  // ---- submit (lead capture; e-sign + payment turn on with the backend) ----
+  document.getElementById("submit").addEventListener("click", function () {
+    var d = {
+      name: document.getElementById("fn").value + " " + document.getElementById("ln").value,
+      email: document.getElementById("em").value, phone: document.getElementById("ph").value,
+      addr: chosen ? chosen.addr : "(not found)", acct: chosen ? chosen.acct : "",
+      market: chosen ? chosen.marketValue : "", est: result && result.win ? Math.round(result.savings) : 0
+    };
+    var subject = "New protest application — " + d.addr.split(",")[0];
+    var body = "Name: " + d.name + "%0D%0AEmail: " + d.email + "%0D%0APhone: " + d.phone +
+      "%0D%0AProperty: " + d.addr + "%0D%0ATCAD acct: " + d.acct + "%0D%0AAppraised: " + d.market +
+      "%0D%0AEst. savings/yr: " + d.est + "%0D%0ATerms: 30% contingency accepted";
+    // TODO(backend): POST this to the case database + trigger e-sign (Form 50-162 + engagement) + Stripe.
+    window.location.href = "mailto:coltons@latierratx.com?subject=" + encodeURIComponent(subject) + "&body=" + body;
+    document.getElementById("s3").style.display = "none";
+    document.querySelector(".head").style.display = "none";
+    var done = document.getElementById("done"); done.classList.add("show");
+    document.getElementById("doneMsg").textContent = "Thanks, " + document.getElementById("fn").value + ". We've received your application for " + d.addr.split(",")[0] + ". We'll confirm your case and email your agreement and Form 50-162 to sign — no charge unless we lower your bill.";
+  });
+
+  // preselect a property if arriving from the engine (?acct=)
+  (function () { var a = new URLSearchParams(location.search).get("acct"); if (a) { var p = POOL.find(function (x) { return x.acct === a; }); if (p) pick(p); } })();
+</script>
+</body>
+</html>
