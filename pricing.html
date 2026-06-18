@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travis Tax Protest — Pricing</title>
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .hero { padding: 60px 0 8px; text-align: center; }
+  .hero .display { font-size: clamp(30px, 4.4vw, 46px); max-width: 720px; margin: 18px auto 0; }
+  .hero .lede { max-width: 560px; margin: 18px auto 0; }
+
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start; }
+  .tier { padding: 28px; display: flex; flex-direction: column; }
+  .tier.featured { border: 2px solid var(--blue); box-shadow: var(--shadow-lg); position: relative; }
+  .tier .badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 999px; }
+  .tier h3 { font-size: 18px; }
+  .tier .who { color: var(--muted); font-size: 13px; margin: 2px 0 16px; }
+  .tier .price { font-family: var(--font-display); font-weight: 800; color: var(--ink); letter-spacing: -1px; }
+  .tier .price .big { font-size: 40px; }
+  .tier .price .unit { font-size: 15px; color: var(--muted); font-weight: 600; }
+  .tier ul { list-style: none; padding: 0; margin: 18px 0 22px; flex: 1; }
+  .tier li { padding: 8px 0 8px 26px; position: relative; font-size: 14px; color: var(--ink-soft); }
+  .tier li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 800; }
+  .tier .btn { width: 100%; justify-content: center; }
+
+  .compare { padding: 26px 30px; margin-top: 28px; background: var(--grad-soft); border-color: #dbe6fb; }
+  .compare h3 { font-size: 17px; margin-bottom: 12px; }
+  .compare table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .compare td { padding: 9px 4px; border-bottom: 1px solid #d9e6fb; color: var(--ink-soft); }
+  .compare td:last-child { text-align: right; font-weight: 600; color: var(--ink); }
+  .compare tr:last-child td { border-bottom: none; }
+  .compare .us { color: var(--blue-dark); font-weight: 700; }
+
+  .lead-form { padding: 30px; max-width: 620px; margin: 0 auto; }
+  .lead-form .row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .lead-form label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin: 14px 0 6px; }
+  .lead-form input, .lead-form select, .lead-form textarea { width: 100%; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 10px; font-family: var(--font-body); font-size: 15px; color: var(--ink); background: #fff; }
+  .lead-form input:focus, .lead-form select:focus, .lead-form textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+  .lead-form .btn { margin-top: 20px; }
+  .lead-note { font-size: 12.5px; color: var(--muted); margin-top: 12px; text-align: center; }
+
+  .firm { text-align: center; margin-top: 22px; color: var(--ink-soft); font-size: 15px; }
+  .firm a { color: var(--blue); font-weight: 600; text-decoration: none; }
+
+  @media (max-width: 820px) { .tiers { grid-template-columns: 1fr; } .lead-form .row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-logo"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 11 12 4l8.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9.6V19h12.8V9.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11.4v4.8m0 0 1.9-1.9M12 16.2l-1.9-1.9" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">Travis Tax Protest</span></a>
+    <div class="nav-links">
+      <a href="demo.html">Engine</a>
+      <a href="batch.html">Prospecting</a>
+      <a href="pricing.html" class="active">Pricing</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero container">
+  <span class="pill"><span class="dot"></span> Pricing</span>
+  <h1 class="display">Pay only when <span class="grad">you win.</span></h1>
+  <p class="lede">Most Texas firms take 35–50% of your savings. We don't. Whether you do it yourself or hand it to us, you keep more of every dollar we knock off your bill.</p>
+</header>
+
+<div class="container">
+
+  <div class="tiers">
+    <div class="card tier">
+      <h3>Do it yourself</h3>
+      <div class="who">For the hands-on homeowner</div>
+      <div class="price"><span class="big">$49</span> <span class="unit">/ property</span></div>
+      <ul>
+        <li>Full comparable-homes analysis</li>
+        <li>The written "why your value is too high" case</li>
+        <li>Ready-to-file Notice of Protest (Form 50-132)</li>
+        <li>You file it — and keep <strong>100%</strong> of the savings</li>
+      </ul>
+      <button class="btn btn-ghost" data-plan="Do-it-yourself ($49/property)">Start a filing</button>
+    </div>
+
+    <div class="card tier featured">
+      <span class="badge">Most popular</span>
+      <h3>Done for you</h3>
+      <div class="who">For the homeowner who wants it handled</div>
+      <div class="price"><span class="big">30%</span> <span class="unit">of savings</span></div>
+      <ul>
+        <li><strong>$0 upfront. $0 if we don't save you money.</strong></li>
+        <li>We build the case and file the protest</li>
+        <li>We represent you through the hearing</li>
+        <li>Cheaper than the 35–50% most firms charge</li>
+      </ul>
+      <button class="btn btn-primary" data-plan="Done-for-you (30% of savings)">Get my free estimate</button>
+    </div>
+
+    <div class="card tier">
+      <h3>Investor / Pro</h3>
+      <div class="who">For portfolios &amp; agents</div>
+      <div class="price"><span class="big">$99</span> <span class="unit">/ month</span></div>
+      <ul>
+        <li>Rank your <strong>entire portfolio</strong> by opportunity</li>
+        <li>Unlimited properties, every tax year</li>
+        <li>Batch reports + exports for every parcel</li>
+        <li>Find the winners before the May 15 deadline</li>
+      </ul>
+      <button class="btn btn-ghost" data-plan="Investor / Pro ($99/month)">Start free trial</button>
+    </div>
+  </div>
+
+  <div class="card compare">
+    <h3>How we compare</h3>
+    <table>
+      <tr><td>Typical Texas protest firm</td><td>35–50% of savings</td></tr>
+      <tr><td>Upfront flat-fee firms</td><td>~$58 even if you save $0</td></tr>
+      <tr><td class="us">Travis Tax Protest — done for you</td><td class="us">30% · $0 if no savings</td></tr>
+      <tr><td class="us">Travis Tax Protest — DIY</td><td class="us">$49 flat · keep 100%</td></tr>
+    </table>
+  </div>
+
+  <section class="section">
+    <div class="section-head" style="text-align:center">
+      <span class="eyebrow">Get started</span>
+      <h2>Tell us about your property</h2>
+    </div>
+    <div class="card lead-form">
+      <form id="leadForm" onsubmit="return sendLead()">
+        <div class="row">
+          <div><label for="lf-name">Name</label><input id="lf-name" required placeholder="Your name" /></div>
+          <div><label for="lf-email">Email</label><input id="lf-email" type="email" required placeholder="you@email.com" /></div>
+        </div>
+        <label for="lf-addr">Property address</label>
+        <input id="lf-addr" placeholder="e.g. 1100 Havre Lafitte Dr, Austin TX 78746" />
+        <label for="lf-plan">I'm interested in</label>
+        <select id="lf-plan">
+          <option>Done-for-you (30% of savings)</option>
+          <option>Do-it-yourself ($49/property)</option>
+          <option>Investor / Pro ($99/month)</option>
+          <option>Licensing the engine for my firm</option>
+        </select>
+        <label for="lf-msg">Anything else? (optional)</label>
+        <textarea id="lf-msg" rows="3" placeholder="Portfolio size, questions, etc."></textarea>
+        <button class="btn btn-primary" type="submit">Get started</button>
+      </form>
+      <div class="lead-note">Opens your email to send the request — no account needed. We reply within one business day.</div>
+    </div>
+    <div class="firm">Run a brokerage or protest firm? <a href="#" data-plan="Licensing the engine for my firm" class="firm-link">License the engine or API →</a></div>
+  </section>
+</div>
+
+<div class="foot">
+  Travis Tax Protest · coltons@latierratx.com · Austin, TX<br/>
+  Not legal or tax advice. Fees and figures are illustrative and subject to a written agreement.
+</div>
+
+<script src="reveal.js"></script>
+<script>
+  function setPlan(v) {
+    var sel = document.getElementById("lf-plan");
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === v || sel.options[i].text === v) sel.selectedIndex = i;
+    document.getElementById("leadForm").scrollIntoView({ behavior: "smooth", block: "center" });
+    document.getElementById("lf-name").focus();
+  }
+  [].slice.call(document.querySelectorAll("[data-plan]")).forEach(function (b) {
+    b.addEventListener("click", function (e) { e.preventDefault(); setPlan(b.getAttribute("data-plan")); });
+  });
+  window.sendLead = function () {
+    var g = function (id) { return encodeURIComponent(document.getElementById(id).value || ""); };
+    var subject = "Travis Tax Protest — " + decodeURIComponent(g("lf-plan"));
+    var body = "Name: " + g("lf-name") + "%0D%0AEmail: " + g("lf-email") + "%0D%0AProperty: " + g("lf-addr") +
+      "%0D%0APlan: " + g("lf-plan") + "%0D%0A%0D%0A" + g("lf-msg");
+    window.location.href = "mailto:coltons@latierratx.com?subject=" + encodeURIComponent(subject) + "&body=" + body;
+    return false;
+  };
+</script>
+</body>
+</html>
