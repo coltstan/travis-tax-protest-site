@@ -162,8 +162,23 @@
     var pos = (sorted.length - 1) * q, b = Math.floor(pos), rest = pos - b;
     return sorted[b + 1] !== undefined ? sorted[b] + rest * (sorted[b + 1] - sorted[b]) : sorted[b];
   }
-  function rankCandidates(subject, pool) {
-    return pool.filter(function (p) { return p.acct !== subject.acct; })
+  // Bucket the pool by neighborhood once per pool (memoized by reference, like calibrate).
+  var _hoodCache = { pool: null, idx: null };
+  function hoodIndex(pool) {
+    if (_hoodCache.pool === pool) return _hoodCache.idx;
+    var idx = {};
+    for (var i = 0; i < pool.length; i++) { var h = pool[i].hood; (idx[h] || (idx[h] = [])).push(pool[i]); }
+    _hoodCache.pool = pool; _hoodCache.idx = idx;
+    return idx;
+  }
+  function rankCandidates(subject, pool, cfg) {
+    cfg = cfg || CONFIG;
+    var bucket = hoodIndex(pool)[subject.hood];
+    // distance() penalises cross-neighborhood comps by +1000, so they're never picked when
+    // the subject's own hood can fill the comp set. When it can, scan just that hood — identical
+    // picks, ~14x less work at county scale. Small/sparse hoods fall back to the full pool.
+    var scan = (bucket && bucket.length > cfg.compCount + 8) ? bucket : pool;
+    return scan.filter(function (p) { return p.acct !== subject.acct; })
       .map(function (p) { return { p: p, d: distance(subject, p) }; })
       .sort(function (a, b) { return a.d - b.d; });
   }
@@ -204,7 +219,7 @@
     var rates = cal.rates;
 
     // 1) rank candidates (distance prefers same neighborhood + class + size/age); take a buffer
-    var cands = rankCandidates(subject, pool).slice(0, cfg.compCount + 8).map(function (s) {
+    var cands = rankCandidates(subject, pool, cfg).slice(0, cfg.compCount + 8).map(function (s) {
       return Object.assign({}, s.p, { match: matchLabel(s.d), adj: adjustComp(subject, s.p, rates) });
     });
     // 2) drop adjusted-value outliers (1.5*IQR fence) when there are enough candidates

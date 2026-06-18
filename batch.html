@@ -81,7 +81,8 @@
     <h3>Load real Travis County data, or upload your own list</h3>
     <p class="sub">CSV columns: <code>account, address, hood, sqft, year, quality, condition, baths, garage, pool, landValue, marketValue, cappedValue</code>. Missing columns default safely. Comps are drawn from the loaded set.</p>
     <div class="uploader">
-      <button class="btn btn-primary" id="realBtn">Load real Westlake neighborhood (78746 · TCAD)</button>
+      <button class="btn btn-primary" id="realBtn">Load Westlake neighborhood (300 · TCAD)</button>
+      <button class="btn btn-ghost" id="fullBtn">Load full 78746 (9,158 homes · TCAD)</button>
       <button class="btn btn-ghost" id="uploadBtn">Upload CSV</button>
       <input type="file" id="fileInput" accept=".csv,text/csv" />
       <span class="hint" id="fileHint">No file loaded.</span>
@@ -115,7 +116,8 @@
 </div>
 
 <script src="neighborhood-real.js?v=3"></script>
-<script src="engine.js?v=3"></script>
+<script src="properties.js?v=3"></script>
+<script src="engine.js?v=4"></script>
 <script>
   var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var fmt0 = function (n) { return Math.round(n).toLocaleString("en-US"); };
@@ -159,16 +161,27 @@
     return out.filter(function (p) { return p.acct && p.sqft > 0 && p.marketValue > 0; });
   }
 
+  // Value the list in chunks so a county-scale pool (9,000+) doesn't freeze the UI.
+  // rank by year-1 cash (fee) first; within the zero-cash homes, biggest over-assessment first
+  // so capped "future plays" sort above genuinely fair homes.
   function load(list, label) {
-    if (!list.length) { document.getElementById("fileHint").textContent = "No valid rows found — check the column headers."; return; }
-    // rank by year-1 cash (fee) first; within the zero-cash homes, biggest over-assessment first
-    // so capped "future plays" sort above genuinely fair homes.
-    rows = list.map(function (p) {
-      var cv = (p.cappedValue != null) ? p.cappedValue : p.marketValue;
-      return { p: p, r: TTP.valuate(p, list), uncapped: cv >= p.marketValue - 1, capGapPct: Math.max(0, (p.marketValue - cv) / p.marketValue * 100) };
-    }).sort(function (a, b) { return (b.r.fee - a.r.fee) || (b.r.marketReduction - a.r.marketReduction); });
-    document.getElementById("fileHint").textContent = label + " — " + list.length + " properties loaded.";
-    render();
+    var hint = document.getElementById("fileHint");
+    if (!list.length) { hint.textContent = "No valid rows found — check the column headers."; return; }
+    rows = [];
+    var i = 0, CHUNK = (list.length > 1500) ? 100 : list.length;
+    (function step() {
+      var end = Math.min(i + CHUNK, list.length);
+      for (; i < end; i++) {
+        var p = list[i], cv = (p.cappedValue != null) ? p.cappedValue : p.marketValue;
+        rows.push({ p: p, r: TTP.valuate(p, list), uncapped: cv >= p.marketValue - 1, capGapPct: Math.max(0, (p.marketValue - cv) / p.marketValue * 100) });
+      }
+      if (i < list.length) { hint.textContent = label + " — valuing " + i.toLocaleString() + " / " + list.length.toLocaleString() + "…"; setTimeout(step, 0); }
+      else {
+        rows.sort(function (a, b) { return (b.r.fee - a.r.fee) || (b.r.marketReduction - a.r.marketReduction); });
+        hint.textContent = label + " — " + list.length.toLocaleString() + " properties loaded.";
+        render();
+      }
+    })();
   }
 
   function render() {
@@ -183,8 +196,11 @@
       '<div class="scard rev"><div class="k">Pipeline revenue (yr 1)</div><div class="v">' + fmt(pipeline) + '</div></div>' +
       '<div class="scard save"><div class="k">Total client savings</div><div class="v">' + fmt(clientSave) + '</div></div>';
     var view = rows.filter(matchFilter);
-    document.getElementById("fcount").textContent = "Showing " + view.length + " of " + rows.length;
-    document.getElementById("resBody").innerHTML = view.map(function (x, i) {
+    var CAP = 750, shown = view.slice(0, CAP);
+    document.getElementById("fcount").textContent = view.length > CAP
+      ? "Showing top " + CAP + " of " + view.length.toLocaleString() + " — export for the full list"
+      : "Showing " + view.length + " of " + rows.length.toLocaleString();
+    document.getElementById("resBody").innerHTML = shown.map(function (x, i) {
       var p = x.p, r = x.r;
       return '<tr>' +
         '<td class="rank">' + (i + 1) + '</td><td>' + p.acct + '</td><td>' + p.addr.split(",")[0] + '</td><td>' + p.hood + '</td>' +
@@ -227,6 +243,10 @@
     var reader = new FileReader(); reader.onload = function (ev) { load(parseCSV(ev.target.result), f.name); }; reader.readAsText(f);
   });
   document.getElementById("realBtn").addEventListener("click", function () { load(window.NB_REAL.slice(), "Westlake 78746 — real TCAD data"); });
+  document.getElementById("fullBtn").addEventListener("click", function () {
+    if (!window.PROPERTIES) { document.getElementById("fileHint").textContent = "Full dataset still loading — try again in a moment."; return; }
+    load(window.PROPERTIES.slice(), "Full 78746 — real TCAD data");
+  });
   document.getElementById("exportBtn").addEventListener("click", exportCSV);
 
   load(window.NB_REAL.slice(), "Westlake 78746 — real TCAD data");
