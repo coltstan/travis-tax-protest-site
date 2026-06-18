@@ -21,7 +21,7 @@
   input[type=file] { display: none; }
   .hint { font-size: 13px; color: var(--muted); }
 
-  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .summary { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
   .scard { border-radius: 13px; padding: 18px; border: 1px solid var(--line); background: var(--surface); }
   .scard.rev { background: var(--blue-soft); border-color: #cfe0fb; }
   .scard.save { background: var(--green-soft); border-color: #cdeadd; }
@@ -43,6 +43,7 @@
   .badge.Medium { background: var(--amber-soft); color: var(--amber); }
   .badge.Low { background: #fbe9e8; color: var(--red); }
   .yes { display:inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--green-soft); color: var(--green); }
+  .maybe { display:inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); }
   .no { display:inline-block; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; background: #eef1f5; color: var(--muted); }
 
   @media (max-width: 760px) { .summary { grid-template-columns: 1fr 1fr; } }
@@ -84,7 +85,7 @@
   <section class="card">
     <div class="step"><b>2</b> Ranked prospects</div>
     <h3>Best opportunities first</h3>
-    <p class="sub">Uses each property's actual combined taxing-unit rate; contingency fee 30% of first-year savings. Homestead-capped homes, or those at/below the comparable median, show no first-year savings.</p>
+    <p class="sub">Uses each property's actual combined taxing-unit rate; contingency fee 30% of first-year savings. <strong>Protest</strong> = year-1 cash today. <strong>Future</strong> = over-assessed but homestead-capped — no year-1 fee, but worth filing to restrain future increases. <strong>Skip</strong> = at/below the comparable median.</p>
     <div class="summary" id="summary"></div>
     <div class="tbl-scroll">
       <table id="resTbl"><thead><tr>
@@ -101,7 +102,7 @@
 </div>
 
 <script src="neighborhood-real.js?v=3"></script>
-<script src="engine.js?v=2"></script>
+<script src="engine.js?v=3"></script>
 <script>
   var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var fmt0 = function (n) { return Math.round(n).toLocaleString("en-US"); };
@@ -135,18 +136,22 @@
 
   function load(list, label) {
     if (!list.length) { document.getElementById("fileHint").textContent = "No valid rows found — check the column headers."; return; }
-    rows = list.map(function (p) { return { p: p, r: TTP.valuate(p, list) }; }).sort(function (a, b) { return b.r.fee - a.r.fee; });
+    // rank by year-1 cash (fee) first; within the zero-cash homes, biggest over-assessment first
+    // so capped "future plays" sort above genuinely fair homes.
+    rows = list.map(function (p) { return { p: p, r: TTP.valuate(p, list) }; }).sort(function (a, b) { return (b.r.fee - a.r.fee) || (b.r.marketReduction - a.r.marketReduction); });
     document.getElementById("fileHint").textContent = label + " — " + list.length + " properties loaded.";
     render();
   }
 
   function render() {
     var cand = rows.filter(function (x) { return x.r.win; });
+    var capped = rows.filter(function (x) { return x.r.cappedNoSavings; });
     var pipeline = cand.reduce(function (s, x) { return s + x.r.fee; }, 0);
     var clientSave = cand.reduce(function (s, x) { return s + x.r.savings; }, 0);
     document.getElementById("summary").innerHTML =
       '<div class="scard"><div class="k">Properties</div><div class="v">' + rows.length + '</div></div>' +
       '<div class="scard"><div class="k">Protest candidates</div><div class="v">' + cand.length + '</div></div>' +
+      '<div class="scard"><div class="k">Capped — future play</div><div class="v">' + capped.length + '</div></div>' +
       '<div class="scard rev"><div class="k">Pipeline revenue (yr 1)</div><div class="v">' + fmt(pipeline) + '</div></div>' +
       '<div class="scard save"><div class="k">Total client savings</div><div class="v">' + fmt(clientSave) + '</div></div>';
     document.getElementById("resBody").innerHTML = rows.map(function (x, i) {
@@ -158,18 +163,18 @@
         '<td class="num">' + (r.savings > 0 ? fmt(r.savings) : "—") + '</td>' +
         '<td class="fee">' + (r.fee > 0 ? fmt(r.fee) : "—") + '</td>' +
         '<td><span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span></td>' +
-        '<td>' + (r.win ? '<span class="yes">Protest</span>' : '<span class="no">Skip</span>') + '</td></tr>';
+        '<td>' + (r.win ? '<span class="yes">Protest</span>' : r.cappedNoSavings ? '<span class="maybe">Future</span>' : '<span class="no">Skip</span>') + '</td></tr>';
     }).join("");
   }
 
   function exportCSV() {
     if (!rows.length) return;
-    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,confidence,protest";
+    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,future_savings,confidence,status";
     var body = rows.map(function (x, i) {
       var p = x.p, r = x.r;
       return [i + 1, p.acct, '"' + p.addr + '"', p.hood, p.sqft, Math.round(p.marketValue), Math.round(r.proposed),
         Math.round(r.marketReduction), Math.round(r.taxableReduction), Math.round(r.savings), Math.round(r.fee),
-        r.confidence.level, r.win ? "yes" : "no"].join(",");
+        Math.round(r.futureSavings), r.confidence.level, r.win ? "protest" : r.cappedNoSavings ? "future" : "skip"].join(",");
     }).join("\n");
     var blob = new Blob([head + "\n" + body], { type: "text/csv" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "protest-prospects.csv"; a.click();

@@ -231,6 +231,10 @@
     var rate = (subject.taxRate != null) ? subject.taxRate : cfg.taxRate;  // per-parcel rate if known
     var savings = taxableReduction * rate;
     var fee = savings * cfg.feeRate;
+    // how much the cap already shields from tax now, and the annual saving a protest would
+    // eventually unlock once the 10% cap rises to meet the (now lower) market value.
+    var capProtection = Math.max(0, subject.marketValue - taxableNow);
+    var futureSavings = marketReduction * rate;
 
     return {
       sizeRate: rates.sizeRate, rates: rates, calibration: cal,
@@ -238,6 +242,7 @@
       marketValue: subject.marketValue, cappedValue: capped,
       marketReduction: marketReduction, taxableReduction: taxableReduction,
       savings: savings, fee: fee, net: savings - fee, taxRate: rate, outliersDropped: dropped,
+      capProtection: capProtection, futureSavings: futureSavings,
       win: taxableReduction > 0, cappedNoSavings: marketReduction > 0 && taxableReduction === 0,
       confidence: confidence(adjVals, comps.map(function (c) { return c.adj.gross; }), proposed, comps.length, sameHood, cfg.compCount)
     };

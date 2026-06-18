@@ -200,7 +200,7 @@
 </div>
 
 <script src="properties.js?v=3"></script>
-<script src="engine.js?v=2"></script>
+<script src="engine.js?v=3"></script>
 <script>
   var POOL = window.PROPERTIES;
   var QUAL = TTP.QUAL, COND = TTP.COND;
@@ -279,7 +279,9 @@
   function renderResult(p, r) {
     document.getElementById("verdictBox").innerHTML = r.win
       ? '<div class="verdict win"><div class="tag">Protest recommended</div><div class="big">' + fmt(r.savings) + '</div><div class="lil">estimated first-year tax savings</div></div>'
-      : '<div class="verdict nowin"><div class="tag">No first-year savings</div><div class="big">' + fmt(0) + '</div><div class="lil">' + (r.cappedNoSavings ? "over-assessed, but the homestead cap blocks savings this year" : "appraised at or below the comparable median") + '</div></div>';
+      : r.cappedNoSavings
+        ? '<div class="verdict nowin"><div class="tag">Cap is protecting you</div><div class="big">' + fmt(0) + '</div><div class="lil">No savings <em>this year</em> — the 10% homestead cap already holds your taxable value ' + fmt(r.capProtection) + ' below market. Protesting still lowers your market value, easing the cap\'s climb (~' + fmt(r.futureSavings) + '/yr once it catches up).</div></div>'
+        : '<div class="verdict nowin"><div class="tag">No first-year savings</div><div class="big">' + fmt(0) + '</div><div class="lil">appraised at or below the comparable median</div></div>';
     var reasons = (r.confidence.reasons && r.confidence.reasons.length) ? ' · &#9888; ' + r.confidence.reasons.join(", ") : '';
     document.getElementById("confBox").innerHTML =
       'Confidence <span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span>' +
@@ -290,6 +292,7 @@
       '<div class="brow"><span class="bk">Market value reduction</span><span class="bv">' + fmt(r.marketReduction) + '</span></div>' +
       '<div class="brow"><span class="bk">Taxable reduction (after cap)</span><span class="bv">' + fmt(r.taxableReduction) + '</span></div>' +
       '<div class="brow"><span class="bk">Tax rate (this parcel)</span><span class="bv">' + (r.taxRate * 100).toFixed(2) + '%</span></div>' +
+      (r.cappedNoSavings ? '<div class="brow"><span class="bk">Est. savings once cap meets market</span><span class="bv">~' + fmt(r.futureSavings) + '/yr</span></div>' : '') +
       '<div class="brow fee"><span class="bk">Our fee (30% of year-1 savings)</span><span class="bv">' + fmt(r.fee) + '</span></div>' +
       '<div class="brow net"><span class="bk">Owner keeps (year 1)</span><span class="bv">' + fmt(r.net) + '</span></div>';
     document.getElementById("noteBox").innerHTML = r.cappedNoSavings
