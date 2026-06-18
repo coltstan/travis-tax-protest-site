@@ -46,6 +46,12 @@
   .maybe { display:inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--amber-soft); color: var(--amber); }
   .no { display:inline-block; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; background: #eef1f5; color: var(--muted); }
 
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  .fbtn { font-size: 12.5px; font-weight: 600; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: #fff; color: var(--ink-soft); cursor: pointer; transition: all .15s ease; }
+  .fbtn:hover { border-color: var(--blue); color: var(--blue); }
+  .fbtn.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .fcount { margin-left: 6px; font-size: 13px; color: var(--muted); }
+
   @media (max-width: 760px) { .summary { grid-template-columns: 1fr 1fr; } }
 </style>
 </head>
@@ -87,10 +93,17 @@
     <h3>Best opportunities first</h3>
     <p class="sub">Uses each property's actual combined taxing-unit rate; contingency fee 30% of first-year savings. <strong>Protest</strong> = year-1 cash today. <strong>Future</strong> = over-assessed but homestead-capped — no year-1 fee, but worth filing to restrain future increases. <strong>Skip</strong> = at/below the comparable median.</p>
     <div class="summary" id="summary"></div>
+    <div class="filters" id="filters">
+      <button class="fbtn on" data-f="all">All</button>
+      <button class="fbtn" data-f="year1">Year-1 cash</button>
+      <button class="fbtn" data-f="uncapped">Uncapped (full market)</button>
+      <button class="fbtn" data-f="future">Capped (future)</button>
+      <span class="fcount" id="fcount"></span>
+    </div>
     <div class="tbl-scroll">
       <table id="resTbl"><thead><tr>
         <th>#</th><th>Account</th><th>Address</th><th>Area</th><th>Sq ft</th>
-        <th>Market</th><th>Proposed</th><th>Reduction</th><th>Savings</th><th>Our fee</th><th>Conf.</th><th>Protest?</th>
+        <th>Market</th><th>Proposed</th><th>Reduction</th><th>Savings</th><th>Our fee</th><th>Cap</th><th>Conf.</th><th>Protest?</th>
       </tr></thead><tbody id="resBody"></tbody></table>
     </div>
     <div style="margin-top:16px"><button class="btn btn-ghost" id="exportBtn">Export results (CSV)</button></div>
@@ -107,6 +120,18 @@
   var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var fmt0 = function (n) { return Math.round(n).toLocaleString("en-US"); };
   var rows = [];
+  var filterMode = "all";
+
+  // A home is "uncapped" when its taxable value isn't held below market by the homestead cap —
+  // i.e. non-homestead, or recently bought so the cap reset to ~purchase price. Full market is
+  // taxed, so a protest cuts the bill dollar-for-dollar = the cleanest year-1 cash targets.
+  function matchFilter(x) {
+    var r = x.r;
+    if (filterMode === "year1") return r.win;
+    if (filterMode === "uncapped") return x.uncapped;
+    if (filterMode === "future") return r.cappedNoSavings;
+    return true;
+  }
 
   function num(v, d) { var n = parseFloat(String(v).replace(/[$,]/g, "")); return isNaN(n) ? d : n; }
 
@@ -138,7 +163,10 @@
     if (!list.length) { document.getElementById("fileHint").textContent = "No valid rows found — check the column headers."; return; }
     // rank by year-1 cash (fee) first; within the zero-cash homes, biggest over-assessment first
     // so capped "future plays" sort above genuinely fair homes.
-    rows = list.map(function (p) { return { p: p, r: TTP.valuate(p, list) }; }).sort(function (a, b) { return (b.r.fee - a.r.fee) || (b.r.marketReduction - a.r.marketReduction); });
+    rows = list.map(function (p) {
+      var cv = (p.cappedValue != null) ? p.cappedValue : p.marketValue;
+      return { p: p, r: TTP.valuate(p, list), uncapped: cv >= p.marketValue - 1, capGapPct: Math.max(0, (p.marketValue - cv) / p.marketValue * 100) };
+    }).sort(function (a, b) { return (b.r.fee - a.r.fee) || (b.r.marketReduction - a.r.marketReduction); });
     document.getElementById("fileHint").textContent = label + " — " + list.length + " properties loaded.";
     render();
   }
@@ -154,7 +182,9 @@
       '<div class="scard"><div class="k">Capped — future play</div><div class="v">' + capped.length + '</div></div>' +
       '<div class="scard rev"><div class="k">Pipeline revenue (yr 1)</div><div class="v">' + fmt(pipeline) + '</div></div>' +
       '<div class="scard save"><div class="k">Total client savings</div><div class="v">' + fmt(clientSave) + '</div></div>';
-    document.getElementById("resBody").innerHTML = rows.map(function (x, i) {
+    var view = rows.filter(matchFilter);
+    document.getElementById("fcount").textContent = "Showing " + view.length + " of " + rows.length;
+    document.getElementById("resBody").innerHTML = view.map(function (x, i) {
       var p = x.p, r = x.r;
       return '<tr>' +
         '<td class="rank">' + (i + 1) + '</td><td>' + p.acct + '</td><td>' + p.addr.split(",")[0] + '</td><td>' + p.hood + '</td>' +
@@ -162,23 +192,34 @@
         '<td class="num">' + (r.marketReduction > 0 ? fmt(r.marketReduction) : "—") + '</td>' +
         '<td class="num">' + (r.savings > 0 ? fmt(r.savings) : "—") + '</td>' +
         '<td class="fee">' + (r.fee > 0 ? fmt(r.fee) : "—") + '</td>' +
+        '<td>' + (x.uncapped ? '<span class="yes">Full market</span>' : '<span class="maybe">Capped -' + Math.round(x.capGapPct) + '%</span>') + '</td>' +
         '<td><span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span></td>' +
         '<td>' + (r.win ? '<span class="yes">Protest</span>' : r.cappedNoSavings ? '<span class="maybe">Future</span>' : '<span class="no">Skip</span>') + '</td></tr>';
     }).join("");
   }
 
   function exportCSV() {
-    if (!rows.length) return;
-    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,future_savings,confidence,status";
-    var body = rows.map(function (x, i) {
+    var view = rows.filter(matchFilter);
+    if (!view.length) return;
+    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,future_savings,cap_status,cap_gap_pct,confidence,status";
+    var body = view.map(function (x, i) {
       var p = x.p, r = x.r;
       return [i + 1, p.acct, '"' + p.addr + '"', p.hood, p.sqft, Math.round(p.marketValue), Math.round(r.proposed),
         Math.round(r.marketReduction), Math.round(r.taxableReduction), Math.round(r.savings), Math.round(r.fee),
-        Math.round(r.futureSavings), r.confidence.level, r.win ? "protest" : r.cappedNoSavings ? "future" : "skip"].join(",");
+        Math.round(r.futureSavings), x.uncapped ? "uncapped" : "capped", Math.round(x.capGapPct),
+        r.confidence.level, r.win ? "protest" : r.cappedNoSavings ? "future" : "skip"].join(",");
     }).join("\n");
     var blob = new Blob([head + "\n" + body], { type: "text/csv" });
-    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "protest-prospects.csv"; a.click();
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "protest-prospects-" + filterMode + ".csv"; a.click();
   }
+
+  [].forEach.call(document.querySelectorAll("#filters .fbtn"), function (b) {
+    b.addEventListener("click", function () {
+      filterMode = b.getAttribute("data-f");
+      [].forEach.call(document.querySelectorAll("#filters .fbtn"), function (x) { x.classList.toggle("on", x === b); });
+      render();
+    });
+  });
 
   document.getElementById("uploadBtn").addEventListener("click", function () { document.getElementById("fileInput").click(); });
   document.getElementById("fileInput").addEventListener("change", function (e) {
