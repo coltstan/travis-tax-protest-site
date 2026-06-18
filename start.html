@@ -209,24 +209,45 @@
       '<div class="r"><span class="k">Our fee</span><span class="v">30% of savings · $0 if none</span></div>';
   }
 
-  // ---- submit (lead capture; e-sign + payment turn on with the backend) ----
-  document.getElementById("submit").addEventListener("click", function () {
-    var d = {
-      name: document.getElementById("fn").value + " " + document.getElementById("ln").value,
-      email: document.getElementById("em").value, phone: document.getElementById("ph").value,
-      addr: chosen ? chosen.addr : "(not found)", acct: chosen ? chosen.acct : "",
-      market: chosen ? chosen.marketValue : "", est: result && result.win ? Math.round(result.savings) : 0
-    };
-    var subject = "New protest application — " + d.addr.split(",")[0];
-    var body = "Name: " + d.name + "%0D%0AEmail: " + d.email + "%0D%0APhone: " + d.phone +
-      "%0D%0AProperty: " + d.addr + "%0D%0ATCAD acct: " + d.acct + "%0D%0AAppraised: " + d.market +
-      "%0D%0AEst. savings/yr: " + d.est + "%0D%0ATerms: 30% contingency accepted";
-    // TODO(backend): POST this to the case database + trigger e-sign (Form 50-162 + engagement) + Stripe.
-    window.location.href = "mailto:coltons@latierratx.com?subject=" + encodeURIComponent(subject) + "&body=" + body;
+  // ---- submit ----
+  // PASTE YOUR FORM ENDPOINT HERE to capture applications (e.g. Formspree: "https://formspree.io/f/abcd1234").
+  // Leave blank and it falls back to opening an email. See INTEGRATIONS.md for the Airtable/Formspree setup.
+  var FORM_ENDPOINT = "";
+
+  function showDone(name, addrShort) {
     document.getElementById("s3").style.display = "none";
     document.querySelector(".head").style.display = "none";
-    var done = document.getElementById("done"); done.classList.add("show");
-    document.getElementById("doneMsg").textContent = "Thanks, " + document.getElementById("fn").value + ". We've received your application for " + d.addr.split(",")[0] + ". We'll confirm your case and email your agreement and Form 50-162 to sign — no charge unless we lower your bill.";
+    document.getElementById("done").classList.add("show");
+    document.getElementById("doneMsg").textContent = "Thanks, " + name + ". We've received your application for " + addrShort + ". We'll confirm your case and email your agreement and Form 50-162 to sign — no charge unless we lower your bill.";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+  function mailtoFallback(d) {
+    var body = "Name: " + d.name + "%0D%0AEmail: " + d.email + "%0D%0APhone: " + d.phone +
+      "%0D%0AProperty: " + d.property + "%0D%0ATCAD acct: " + d.tcad_account + "%0D%0AAppraised: " + d.appraised_value +
+      "%0D%0AEst. savings/yr: " + d.est_annual_savings + "%0D%0ATerms: " + d.terms;
+    window.location.href = "mailto:coltons@latierratx.com?subject=" + encodeURIComponent(d._subject) + "&body=" + body;
+  }
+  document.getElementById("submit").addEventListener("click", function () {
+    var addrShort = chosen ? chosen.addr.split(",")[0] : "your property";
+    var name = document.getElementById("fn").value;
+    var data = {
+      name: name + " " + document.getElementById("ln").value,
+      email: document.getElementById("em").value,
+      phone: document.getElementById("ph").value,
+      property: chosen ? chosen.addr : "(address not in current dataset)",
+      tcad_account: chosen ? chosen.acct : "",
+      appraised_value: chosen ? chosen.marketValue : "",
+      est_annual_savings: result && result.win ? Math.round(result.savings) : 0,
+      terms: "30% contingency accepted; $0 if no savings",
+      _subject: "New protest application — " + addrShort
+    };
+    if (FORM_ENDPOINT) {
+      fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) })
+        .then(function () { showDone(name, addrShort); })
+        .catch(function () { mailtoFallback(data); showDone(name, addrShort); });
+    } else {
+      mailtoFallback(data); showDone(name, addrShort);
+    }
   });
 
   // preselect a property if arriving from the engine (?acct=)
