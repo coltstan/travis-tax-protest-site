@@ -75,8 +75,8 @@
 
 <div class="wrap">
   <div class="head">
-    <h1>Start your protest</h1>
-    <p>Three quick steps. No upfront cost — you pay 30% of your savings only if we lower your bill.</p>
+    <h1 id="headH1">Start your protest</h1>
+    <p id="headP">Three quick steps. No upfront cost — you pay 30% of your savings only if we lower your bill.</p>
     <div class="steps-bar"><div class="b on" id="b1"></div><div class="b" id="b2"></div><div class="b" id="b3"></div></div>
   </div>
 
@@ -105,7 +105,7 @@
       <li><strong>You authorize us as your agent</strong> for this protest (Texas Comptroller Form 50-162) — we'll send it to e-sign once we confirm your case.</li>
       <li><strong>You're never locked in.</strong> Cancel any time before we file.</li>
     </ul>
-    <label class="agree"><input type="checkbox" id="agree" /> I understand the 30% contingency terms and want to start my protest.</label>
+    <label class="agree"><input type="checkbox" id="agree" /> <span id="agreeTxt">I understand the 30% contingency terms and want to start my protest.</span></label>
     <div class="nav-btns"><button class="btn btn-ghost" data-back="1">Back</button><button class="btn btn-primary" id="to3" disabled>Continue</button></div>
   </section>
 
@@ -125,7 +125,7 @@
     <div class="review" id="review" style="margin-top:18px"></div>
     <label class="agree" style="margin-top:14px"><input type="checkbox" id="own" /> I own this property (or am authorized to act for the owner).</label>
     <div class="nav-btns"><button class="btn btn-ghost" data-back="2">Back</button><button class="btn btn-primary" id="submit" disabled>Start my protest</button></div>
-    <div class="micro">This starts your application — no charge now. We'll confirm your case and send the agreement &amp; Form 50-162 to e-sign before anything is filed.</div>
+    <div class="micro" id="microTxt">This starts your application — no charge now. We'll confirm your case and send the agreement &amp; Form 50-162 to e-sign before anything is filed.</div>
   </section>
 
   <!-- DONE -->
@@ -149,6 +149,37 @@
   var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
   var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   var chosen = null, result = null;
+
+  // ---- season copy ----
+  // The 2026 protest deadline (May 15) has passed, so the funnel reserves 2027 spots.
+  // Flip SEASON_OPEN to true when the 2027 season opens (~April 2027) to switch back to "start now".
+  var SEASON_OPEN = false;
+  var T = SEASON_OPEN ? {
+    h1: "Start your protest",
+    sub: "Three quick steps. No upfront cost — you pay 30% of your savings only if we lower your bill.",
+    submit: "Start my protest",
+    agree: "I understand the 30% contingency terms and want to start my protest.",
+    micro: "This starts your application — no charge now. We'll confirm your case and send the agreement & Form 50-162 to e-sign before anything is filed.",
+    type: "protest application",
+    subjectPre: "New protest application — ",
+    termsField: "30% contingency accepted; $0 if no savings",
+    done: function (name, addr) { return "Thanks, " + name + ". We've received your application for " + addr + ". We'll confirm your case and email your agreement and Form 50-162 to sign — no charge unless we lower your bill."; }
+  } : {
+    h1: "Reserve your 2027 protest",
+    sub: "The 2026 deadline (May 15) has passed. Lock in your spot now — we'll file the moment 2027 notices go out. $0 today; you pay 30% only if we lower your bill.",
+    submit: "Lock in my 2027 protest",
+    agree: "I want to reserve my 2027 protest on these terms (30% of savings, $0 if none).",
+    micro: "This reserves your spot — no charge now and nothing to sign yet. When 2027 notices go out we'll confirm your case and send the agreement & Form 50-162 to e-sign before anything is filed.",
+    type: "2027 reservation",
+    subjectPre: "New 2027 reservation — ",
+    termsField: "Reserved for 2027; 30% contingency; $0 if no savings",
+    done: function (name, addr) { return "You're locked in, " + name + ". We've reserved your 2027 protest for " + addr + ". When the county mails 2027 notices next spring, we'll confirm your case and send your agreement and Form 50-162 to sign — no charge unless we lower your bill."; }
+  };
+  document.getElementById("headH1").textContent = T.h1;
+  document.getElementById("headP").textContent = T.sub;
+  document.getElementById("agreeTxt").textContent = T.agree;
+  document.getElementById("microTxt").textContent = T.micro;
+  document.getElementById("submit").textContent = T.submit;
 
   // ---- step nav ----
   function show(step) {
@@ -218,11 +249,11 @@
     document.getElementById("s3").style.display = "none";
     document.querySelector(".head").style.display = "none";
     document.getElementById("done").classList.add("show");
-    document.getElementById("doneMsg").textContent = "Thanks, " + name + ". We've received your application for " + addrShort + ". We'll confirm your case and email your agreement and Form 50-162 to sign — no charge unless we lower your bill.";
+    document.getElementById("doneMsg").textContent = T.done(name, addrShort);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
   function mailtoFallback(d) {
-    var body = "Name: " + d.name + "%0D%0AEmail: " + d.email + "%0D%0APhone: " + d.phone +
+    var body = "Type: " + d.type + "%0D%0AName: " + d.name + "%0D%0AEmail: " + d.email + "%0D%0APhone: " + d.phone +
       "%0D%0AProperty: " + d.property + "%0D%0ATCAD acct: " + d.tcad_account + "%0D%0AAppraised: " + d.appraised_value +
       "%0D%0AEst. savings/yr: " + d.est_annual_savings + "%0D%0ATerms: " + d.terms;
     window.location.href = "mailto:coltons@latierratx.com?subject=" + encodeURIComponent(d._subject) + "&body=" + body;
@@ -238,8 +269,9 @@
       tcad_account: chosen ? chosen.acct : "",
       appraised_value: chosen ? chosen.marketValue : "",
       est_annual_savings: result && result.win ? Math.round(result.savings) : 0,
-      terms: "30% contingency accepted; $0 if no savings",
-      _subject: "New protest application — " + addrShort
+      type: T.type,
+      terms: T.termsField,
+      _subject: T.subjectPre + addrShort
     };
     if (FORM_ENDPOINT) {
       fetch(FORM_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" }, body: JSON.stringify(data) })

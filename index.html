@@ -70,6 +70,12 @@
   .cta-band p { color: #d9e6fb; margin: 12px 0 24px; font-size: 16px; }
   .cta-band .btn-primary { background: #fff; color: var(--blue-dark); }
 
+  .season-bar { background: var(--blue-soft); border-bottom: 1px solid #cfe0fb; }
+  .season-inner { display: flex; align-items: center; justify-content: center; gap: 18px; flex-wrap: wrap; padding: 11px 0; text-align: center; }
+  .season-inner span { font-size: 14px; color: var(--ink); }
+  .season-inner strong { color: var(--blue-dark); }
+  .season-inner .btn { padding: 9px 18px; font-size: 14px; white-space: nowrap; }
+
   @media (max-width: 760px) {
     .trust { flex-direction: column; margin-top: 24px; } .trust .t { border-right: none; border-bottom: 1px solid var(--line); }
     .tools { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr 1fr; gap: 22px; }
@@ -90,6 +96,14 @@
     </div>
   </div>
 </nav>
+
+<!-- OFF-SEASON BANNER: hide or remove this when the 2027 protest season opens (~April 2027). -->
+<div class="season-bar">
+  <div class="container season-inner">
+    <span><strong>2026 protests have closed</strong> — the May 15 deadline has passed. Reserve your 2027 protest now: lock in our 30% rate, $0 today.</span>
+    <a class="btn btn-primary" href="start.html">Reserve my 2027 spot</a>
+  </div>
+</div>
 
 <header class="hero">
   <div class="hero-bg"></div>
