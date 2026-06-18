@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travis Tax Protest — Protest Engine</title>
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .hero { padding: 44px 0 8px; }
+  .hero .display { font-size: clamp(28px, 4vw, 38px); max-width: 760px; }
+  .hero .lede { font-size: 16px; max-width: 720px; margin-top: 12px; }
+
+  .card { padding: 24px; margin-top: 20px; }
+  .step { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .step b { width: 24px; height: 24px; border-radius: 7px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 12px; }
+  .card h3 { font-size: 19px; margin-bottom: 4px; }
+  .card .sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 16px; }
+  .card .sub strong { color: var(--ink); }
+  .tbl-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 22px 0 8px; }
+
+  .search-wrap { position: relative; max-width: 560px; }
+  .search-results { position: absolute; left: 0; right: 0; top: calc(100% + 6px); background: var(--surface); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: var(--shadow-lg); z-index: 30; max-height: 340px; overflow-y: auto; display: none; }
+  .search-results.open { display: block; }
+  .sr-item { padding: 11px 14px; cursor: pointer; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover, .sr-item.active { background: var(--blue-soft); }
+  .sr-item .a { font-size: 14px; color: var(--ink); font-weight: 500; }
+  .sr-item .v { font-size: 13px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .sr-empty { padding: 13px 14px; color: var(--muted); font-size: 13.5px; }
+
+  .subject-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 16px; }
+  .stat { background: var(--bg); border: 1px solid var(--line); border-radius: 11px; padding: 11px 13px; }
+  .stat .k { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .02em; }
+  .stat .v { font-size: 15px; font-weight: 700; margin-top: 4px; color: var(--ink); }
+
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: right; padding: 10px 11px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; background: var(--bg); }
+  tbody tr:hover { background: var(--blue-soft); }
+  .subject-row { background: #eef6ff !important; font-weight: 700; color: var(--ink); }
+  .median-row td { border-top: 2px solid var(--blue); font-weight: 700; background: var(--blue-soft); }
+  .adj-pos { color: var(--green); } .adj-neg { color: var(--red); } .adj-zero { color: var(--muted); }
+  .pill { font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; }
+  .pill.strong { background: var(--green-soft); color: var(--green); }
+  .pill.good { background: var(--blue-soft); color: var(--blue-dark); }
+  .pill.fair { background: #eef1f5; color: var(--muted); }
+
+  .result-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 18px; }
+  .verdict { border-radius: 14px; padding: 22px; border: 1px solid; }
+  .verdict.win { background: var(--green-soft); border-color: #cdeadd; }
+  .verdict.nowin { background: var(--amber-soft); border-color: #f0e0bd; }
+  .verdict .tag { font-family: var(--font-display); font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+  .verdict.win .tag { color: var(--green); } .verdict.nowin .tag { color: var(--amber); }
+  .verdict .big { font-family: var(--font-display); font-size: 38px; font-weight: 800; letter-spacing: -1px; margin: 8px 0 2px; color: var(--ink); }
+  .verdict .lil { font-size: 13.5px; color: var(--ink-soft); }
+  .conf { margin-top: 14px; font-size: 12.5px; color: var(--muted); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .conf .badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .03em; }
+  .conf .High { background: var(--green-soft); color: var(--green); }
+  .conf .Medium { background: var(--amber-soft); color: var(--amber); }
+  .conf .Low { background: #fbe9e8; color: var(--red); }
+
+  .breakdown { display: flex; flex-direction: column; gap: 9px; }
+  .brow { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 14px; background: var(--bg); border: 1px solid var(--line); border-radius: 11px; }
+  .brow .bk { font-size: 13px; color: var(--ink-soft); }
+  .brow .bv { font-weight: 700; font-size: 14.5px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .brow.fee { background: var(--blue-soft); border-color: #cfe0fb; }
+  .brow.net { background: var(--green-soft); border-color: #cdeadd; }
+  .brow.net .bv { color: var(--green); }
+
+  .note { margin-top: 16px; padding: 14px 16px; border-radius: 12px; font-size: 13px; background: var(--amber-soft); border: 1px solid #f0e0bd; color: #7a5418; }
+  .note strong { color: var(--amber); }
+
+  .narrative p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.7; margin: 0 0 13px; }
+  .narrative strong { color: var(--ink); }
+  .narrative .looked { margin: 0 0 14px; padding: 0; list-style: none; }
+  .narrative .looked li { padding: 8px 0 8px 26px; position: relative; font-size: 14px; color: var(--ink-soft); border-bottom: 1px solid var(--line); }
+  .narrative .looked li:last-child { border-bottom: none; }
+  .narrative .looked li::before { content: ""; position: absolute; left: 4px; top: 15px; width: 7px; height: 7px; border-radius: 50%; background: var(--blue); }
+  .narrative .quote { background: var(--blue-soft); border-left: 4px solid var(--blue); padding: 15px 18px; border-radius: 0 12px 12px 0; color: var(--ink); font-size: 14.5px; line-height: 1.65; margin-top: 4px; }
+
+  .actions { margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+
+  #packet { display: none; }
+  .packet-doc { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .dochead { background: var(--bg); padding: 16px 20px; border-bottom: 1px solid var(--line); }
+  .dochead h4 { font-size: 15px; } .dochead span { font-size: 12px; color: var(--muted); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; }
+  .ff { padding: 13px 20px; border-bottom: 1px solid var(--line); }
+  .ff:nth-child(odd) { border-right: 1px solid var(--line); }
+  .ff .fk { font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; }
+  .ff .fv { font-size: 14.5px; font-weight: 700; margin-top: 4px; color: var(--ink); }
+  .ff.full { grid-column: 1 / -1; border-right: none; }
+  .checks { padding: 14px 20px; }
+  .chk { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; font-size: 13.5px; color: var(--ink-soft); }
+  .chk .box { width: 18px; height: 18px; border-radius: 5px; background: var(--blue); display: grid; place-items: center; flex: none; margin-top: 1px; color: #fff; font-weight: 800; font-size: 11px; }
+  .chk strong { color: var(--ink); }
+  .argument { padding: 16px 20px; background: var(--bg); font-size: 13.5px; color: var(--ink-soft); border-top: 1px solid var(--line); }
+  .argument strong { color: var(--ink); }
+
+  @media (max-width: 760px) { .result-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } .ff:nth-child(odd) { border-right: none; } }
+  @media print { .nav, .hero, #step1, #step2, #step3, #narrativeCard, .actions, .foot { display: none !important; } #packet { display: block !important; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-logo"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 11 12 4l8.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9.6V19h12.8V9.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11.4v4.8m0 0 1.9-1.9M12 16.2l-1.9-1.9" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">Travis Tax Protest</span></a>
+    <div class="nav-links">
+      <a href="demo.html" class="active">Engine</a>
+      <a href="batch.html">Prospecting</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero container">
+  <span class="pill"><span class="dot"></span> Live engine · real Travis County data</span>
+  <h1 class="display" style="margin-top:16px">Find the over-assessment. <span class="grad">Build the case.</span></h1>
+  <p class="lede">Search any home in ZIP 78746 (9,500+ real properties). The engine auto-selects comparables, adjusts each for size, age, quality, condition, baths, garage, pool, and land under §41.43(b)(3), applies the homestead cap, and writes the case.</p>
+</header>
+
+<div class="container">
+
+  <section class="card" id="step1">
+    <div class="step"><b>1</b> Find your property</div>
+    <h3>Search a Travis County address</h3>
+    <p class="sub">Real 2025 appraisal-roll data for ZIP 78746. Start typing a street or address — more ZIP codes load the same way.</p>
+    <label class="field-label" for="searchInput">Property address</label>
+    <div class="search-wrap">
+      <input class="field" id="searchInput" placeholder="e.g. 1100 Havre Lafitte Dr" autocomplete="off" />
+      <div class="search-results" id="searchResults"></div>
+    </div>
+    <div class="subject-grid" id="subjectStats"></div>
+  </section>
+
+  <section class="card" id="step2">
+    <div class="step"><b>2</b> Comparable Selection &amp; Adjustment</div>
+    <h3>The engine picks the comps — then levels the playing field</h3>
+    <p class="sub" id="methodNote"></p>
+    <div class="tbl-title">Selected comparables &amp; attributes</div>
+    <div class="tbl-scroll">
+      <table id="attrTbl"><thead><tr>
+        <th>Property</th><th>Area</th><th>Sq ft</th><th>Yr</th><th>Quality</th><th>Cond.</th>
+        <th>Baths</th><th>Gar</th><th>Pool</th><th>Market value</th><th>Match</th>
+      </tr></thead><tbody id="attrBody"></tbody></table>
+    </div>
+    <div class="tbl-title">Adjustment grid (each comp adjusted to the subject)</div>
+    <div class="tbl-scroll">
+      <table id="adjTbl"><thead><tr>
+        <th>Property</th><th>Size</th><th>Age</th><th>Qual</th><th>Cond</th>
+        <th>Baths</th><th>Garage</th><th>Pool</th><th>Land</th><th>&Sigma; Adj</th><th>Adjusted value</th>
+      </tr></thead><tbody id="adjBody"></tbody></table>
+    </div>
+  </section>
+
+  <section class="card" id="step3">
+    <div class="step"><b>3</b> Result</div>
+    <h3>Protest outcome &amp; economics</h3>
+    <p class="sub">Estimated first-year tax savings at this property's tax rate, accounting for the homestead cap, and the contingency split.</p>
+    <div class="result-grid">
+      <div><div id="verdictBox"></div><div class="conf" id="confBox"></div></div>
+      <div class="breakdown" id="breakdown"></div>
+    </div>
+    <div id="noteBox"></div>
+  </section>
+
+  <section class="card narrative" id="narrativeCard">
+    <div class="step"><b>4</b> The Case</div>
+    <h3>Why your appraisal should be lower</h3>
+    <div id="narrative"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="genBtn">Generate protest packet</button>
+      <button class="btn btn-ghost" id="printBtn">Print / save packet</button>
+    </div>
+  </section>
+
+  <section class="card" id="packet">
+    <div class="step"><b>5</b> Filed Document</div>
+    <h3>Notice of Protest — Comptroller Form 50-132</h3>
+    <p class="sub">Pre-filled and ready for the property owner's signature. Deadline: <strong>May 15</strong> (or 30 days after the appraisal notice is mailed).</p>
+    <div class="packet-doc">
+      <div class="dochead"><h4>Property Tax Notice of Protest</h4><span>Form 50-132 · Travis Central Appraisal District</span></div>
+      <div class="form-grid" id="formGrid"></div>
+      <div class="checks">
+        <div class="chk"><span class="box">&#10003;</span><div><strong>Incorrect appraised (market) value.</strong> The appraised value exceeds the property's market value.</div></div>
+        <div class="chk"><span class="box">&#10003;</span><div><strong>Value is unequal compared with other properties.</strong> Not equal and uniform under Tax Code §41.43(b)(3).</div></div>
+      </div>
+      <div class="argument" id="argument"></div>
+    </div>
+  </section>
+</div>
+
+<div class="foot">
+  Real data: Travis Central Appraisal District 2025 certified roll (ZIP 78746).<br/>
+  Not legal or tax advice. Estimated savings use a ~1.84% area tax rate.
+</div>
+
+<script src="properties.js"></script>
+<script src="engine.js"></script>
+<script>
+  var POOL = window.PROPERTIES;
+  var QUAL = TTP.QUAL, COND = TTP.COND;
+  var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+  var fmt0 = function (n) { return Math.round(n).toLocaleString("en-US"); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var current = null;
+
+  function adjSpan(v, bold) {
+    if (v === 0) return '<span class="adj-zero">&mdash;</span>';
+    var cls = v > 0 ? "adj-pos" : "adj-neg";
+    var sign = v > 0 ? "+" : "−";
+    var w = bold ? ' style="font-weight:700"' : '';
+    return '<span class="' + cls + '"' + w + '>' + sign + fmt0(Math.abs(v)) + '</span>';
+  }
+  var short = function (addr) { return addr.split(",")[0]; };
+
+  function renderSubject(p) {
+    document.getElementById("subjectStats").innerHTML =
+      '<div class="stat"><div class="k">Account</div><div class="v">' + p.acct + '</div></div>' +
+      '<div class="stat"><div class="k">Market area</div><div class="v">' + p.hood + '</div></div>' +
+      '<div class="stat"><div class="k">Living area</div><div class="v">' + fmt0(p.sqft) + ' sf</div></div>' +
+      '<div class="stat"><div class="k">Year built</div><div class="v">' + p.year + '</div></div>' +
+      '<div class="stat"><div class="k">Quality</div><div class="v">' + QUAL[p.quality] + '</div></div>' +
+      '<div class="stat"><div class="k">Condition</div><div class="v">' + COND[p.condition] + '</div></div>' +
+      '<div class="stat"><div class="k">Baths</div><div class="v">' + p.baths + '</div></div>' +
+      '<div class="stat"><div class="k">Garage</div><div class="v">' + p.garage + '</div></div>' +
+      '<div class="stat"><div class="k">Pool</div><div class="v">' + (p.pool ? "Yes" : "No") + '</div></div>' +
+      '<div class="stat"><div class="k">Market value</div><div class="v">' + fmt(p.marketValue) + '</div></div>' +
+      '<div class="stat"><div class="k">Assessed (capped)</div><div class="v">' + fmt(p.cappedValue) + '</div></div>';
+  }
+
+  function renderTables(p, r) {
+    var cal = r.calibration, rt = r.rates, src = cal.sources;
+    var tag = function (k) { return src[k] === "calibrated" ? "" : ' <span style="color:var(--muted)">(default)</span>'; };
+    document.getElementById("methodNote").innerHTML =
+      'From ' + POOL.length.toLocaleString() + ' real 78746 properties, the engine selected the ' + r.comps.length +
+      ' best comparables by neighborhood, size, age, quality &amp; condition. ' +
+      (cal.calibrated
+        ? 'Adjustment rates <strong>calibrated from ' + cal.n.toLocaleString() + ' properties</strong> (model fit R&sup2; ' + Math.round((cal.r2 || 0) * 100) + '%): '
+        : 'Using default adjustment rates: ') +
+      'size <strong>$' + rt.sizeRate + '/sf</strong>' + tag("sizeRate") +
+      ', age $' + rt.agePerYear + '/yr' + tag("agePerYear") +
+      ', bath $' + rt.bathPerFull.toLocaleString() + tag("bathPerFull") +
+      ', garage $' + rt.garagePerSpace.toLocaleString() + tag("garagePerSpace") +
+      ', pool $' + rt.poolFlat.toLocaleString() + tag("poolFlat") + ', land 1:1.';
+
+    var aRows =
+      '<tr class="subject-row"><td>SUBJECT — ' + esc(short(p.addr)) + '</td><td>' + p.hood + '</td>' +
+      '<td>' + fmt0(p.sqft) + '</td><td>' + p.year + '</td><td>' + QUAL[p.quality] + '</td><td>' + COND[p.condition] + '</td>' +
+      '<td>' + p.baths + '</td><td>' + p.garage + '</td><td>' + (p.pool ? "Yes" : "No") + '</td><td>' + fmt(p.marketValue) + '</td><td>&mdash;</td></tr>';
+    aRows += r.comps.map(function (c) {
+      return '<tr><td>' + esc(short(c.addr)) + '</td><td>' + c.hood + '</td>' +
+        '<td>' + fmt0(c.sqft) + '</td><td>' + c.year + '</td><td>' + QUAL[c.quality] + '</td><td>' + COND[c.condition] + '</td>' +
+        '<td>' + c.baths + '</td><td>' + c.garage + '</td><td>' + (c.pool ? "Yes" : "No") + '</td><td>' + fmt(c.marketValue) + '</td>' +
+        '<td><span class="pill ' + c.match.toLowerCase() + '">' + c.match + '</span></td></tr>';
+    }).join("");
+    document.getElementById("attrBody").innerHTML = aRows;
+
+    var gRows =
+      '<tr class="subject-row"><td>SUBJECT — ' + esc(short(p.addr)) + '</td>' +
+      '<td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td>' +
+      '<td>' + fmt(p.marketValue) + '</td></tr>';
+    gRows += r.comps.map(function (c) {
+      var a = c.adj;
+      return '<tr><td>' + esc(short(c.addr)) + '</td>' +
+        '<td>' + adjSpan(a.size) + '</td><td>' + adjSpan(a.age) + '</td><td>' + adjSpan(a.quality) + '</td>' +
+        '<td>' + adjSpan(a.condition) + '</td><td>' + adjSpan(a.baths) + '</td><td>' + adjSpan(a.garage) + '</td>' +
+        '<td>' + adjSpan(a.pool) + '</td><td>' + adjSpan(a.land) + '</td><td>' + adjSpan(a.total, true) + '</td>' +
+        '<td>' + fmt(a.adjustedValue) + '</td></tr>';
+    }).join("");
+    gRows += '<tr class="median-row"><td>Median adjusted value (proposed)</td><td colspan="9"></td><td>' + fmt(r.proposed) + '</td></tr>';
+    document.getElementById("adjBody").innerHTML = gRows;
+  }
+
+  function renderResult(p, r) {
+    document.getElementById("verdictBox").innerHTML = r.win
+      ? '<div class="verdict win"><div class="tag">Protest recommended</div><div class="big">' + fmt(r.savings) + '</div><div class="lil">estimated first-year tax savings</div></div>'
+      : '<div class="verdict nowin"><div class="tag">No first-year savings</div><div class="big">' + fmt(0) + '</div><div class="lil">' + (r.cappedNoSavings ? "over-assessed, but the homestead cap blocks savings this year" : "appraised at or below the comparable median") + '</div></div>';
+    document.getElementById("confBox").innerHTML =
+      'Confidence <span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span>' +
+      '<span> · comp spread ' + r.confidence.covPct.toFixed(1) + '%, avg adjustment ' + r.confidence.grossPct.toFixed(1) + '%</span>';
+    document.getElementById("breakdown").innerHTML =
+      '<div class="brow"><span class="bk">Market (appraised) value</span><span class="bv">' + fmt(r.marketValue) + '</span></div>' +
+      '<div class="brow"><span class="bk">Proposed value (comp median)</span><span class="bv">' + fmt(r.proposed) + '</span></div>' +
+      '<div class="brow"><span class="bk">Market value reduction</span><span class="bv">' + fmt(r.marketReduction) + '</span></div>' +
+      '<div class="brow"><span class="bk">Taxable reduction (after cap)</span><span class="bv">' + fmt(r.taxableReduction) + '</span></div>' +
+      '<div class="brow fee"><span class="bk">Our fee (30% of year-1 savings)</span><span class="bv">' + fmt(r.fee) + '</span></div>' +
+      '<div class="brow net"><span class="bk">Owner keeps (year 1)</span><span class="bv">' + fmt(r.net) + '</span></div>';
+    document.getElementById("noteBox").innerHTML = r.cappedNoSavings
+      ? '<div class="note"><strong>Homestead cap note.</strong> Appraised at ' + fmt(r.marketValue) +
+        ' but the taxable value is capped at ' + fmt(r.cappedValue) + ' (Texas 10% homestead cap). A protest lowers the ' +
+        'market value but won\'t cut this year\'s bill — though it lowers the base the cap builds on, helping future years.</div>'
+      : '';
+  }
+
+  function renderNarrative(p, r) {
+    var box = document.getElementById("narrative");
+    if (r.marketReduction <= 0) {
+      box.innerHTML = '<p><strong>' + esc(short(p.addr)) + '</strong> is already appraised at or below the median of comparable homes, so it looks fairly assessed this year — there\'s no over-assessment to challenge. We\'d re-check it next appraisal cycle.</p>';
+      return;
+    }
+    var pct = (r.marketReduction / r.marketValue * 100);
+    var psf = Math.round(r.marketValue / p.sqft);
+    var medPsf = Math.round(r.proposed / p.sqft);
+    var top = r.comps.slice(0, 3);
+    var comps = top.map(function (c) {
+      return '<li><strong>' + esc(short(c.addr)) + '</strong> — ' + fmt0(c.sqft) + ' sf, county value ' + fmt(c.marketValue) +
+        ', which adjusts to <strong>' + fmt(c.adj.adjustedValue) + '</strong> once matched to your home.</li>';
+    }).join("");
+    var calib = r.calibration.calibrated
+      ? "with dollar values derived from " + r.calibration.n.toLocaleString() + " real sales-roll records in the area (not guesswork)"
+      : "using standard market adjustments";
+    var html =
+      '<p>Travis County appraises <strong>' + esc(short(p.addr)) + '</strong> at <strong>' + fmt(r.marketValue) + '</strong> — about <strong>$' + psf + '/sq ft</strong> across ' + fmt0(p.sqft) + ' sq ft. Here\'s why that number is too high.</p>' +
+      '<p><strong>What we compared it to.</strong> From ' + POOL.length.toLocaleString() + ' real properties on the county roll, the engine pulled the ' + r.comps.length + ' most similar homes the county <em>itself</em> values nearby. The closest three:</p>' +
+      '<ul class="looked">' + comps + '</ul>' +
+      '<p><strong>How we leveled the field.</strong> No two homes are identical, so each comparable was adjusted to match yours on living area, age, construction quality, condition, bathrooms, garage, pool, and land — ' + calib + '. After those adjustments, the <strong>median</strong> comparable value lands at <strong>' + fmt(r.proposed) + '</strong> (about $' + medPsf + '/sq ft).</p>' +
+      '<p><strong>The argument.</strong> Your appraisal sits <strong>' + fmt(r.marketReduction) + '</strong> — roughly <strong>' + pct.toFixed(1) + '%</strong> — above where comparable homes are valued. Texas Tax Code §41.43(b)(3) ("equal and uniform") says a property may not be appraised above the median appraised value of a reasonable number of comparable, appropriately adjusted properties. By that standard, the supported value is <strong>' + fmt(r.proposed) + '</strong>, not ' + fmt(r.marketValue) + '.</p>' +
+      (r.cappedNoSavings
+        ? '<p><strong>This year\'s tax impact.</strong> Because the homestead cap already holds your <em>taxable</em> value (' + fmt(r.cappedValue) + ') below market, this reduction may not cut this year\'s bill — but it lowers the base the 10% cap builds on, protecting you in future years.</p>'
+        : '<p><strong>What it\'s worth.</strong> Lowering the value to ' + fmt(r.proposed) + ' cuts the taxable amount by ' + fmt(r.taxableReduction) + ', an estimated <strong>' + fmt(r.savings) + '</strong> off this year\'s tax bill — and the protest can be repeated every year.</p>') +
+      '<p style="color:var(--muted);font-size:13px">Confidence: <strong style="color:var(--ink)">' + r.confidence.level + '</strong> — the comparables cluster within ' + r.confidence.covPct.toFixed(1) + '% of each other and needed only modest adjustment.</p>' +
+      '<div class="quote"><strong>Requested value: ' + fmt(r.proposed) + '.</strong> The appraised value exceeds the median adjusted value of ' + r.comps.length + ' comparable properties and is therefore not equal and uniform under Tex. Tax Code §41.43(b)(3). The owner respectfully requests the value be reduced accordingly.</div>';
+    box.innerHTML = html;
+  }
+
+  function renderPacket(p, r) {
+    document.getElementById("formGrid").innerHTML =
+      '<div class="ff"><div class="fk">Tax year</div><div class="fv">2026</div></div>' +
+      '<div class="ff"><div class="fk">Appraisal district account no.</div><div class="fv">' + p.acct + '</div></div>' +
+      '<div class="ff"><div class="fk">Property owner</div><div class="fv">' + esc(p.owner || "—") + '</div></div>' +
+      '<div class="ff"><div class="fk">Appraisal district</div><div class="fv">Travis CAD</div></div>' +
+      '<div class="ff full"><div class="fk">Property description</div><div class="fv">' + esc(p.addr) + '</div></div>' +
+      '<div class="ff"><div class="fk">Appraised value on notice</div><div class="fv">' + fmt(p.marketValue) + '</div></div>' +
+      '<div class="ff"><div class="fk">Owner\'s opinion of value</div><div class="fv">' + fmt(r.proposed) + '</div></div>';
+    document.getElementById("argument").innerHTML =
+      '<strong>Basis of protest.</strong> Under Tex. Tax Code §41.43(b)(3), the appraised value of the subject (' +
+      fmt(p.marketValue) + ') exceeds the median adjusted appraised value of ' + r.comps.length + ' comparable properties (' +
+      fmt(r.proposed) + ') — each adjusted for living area, age, construction quality, condition, bathrooms, garage, pool, and ' +
+      'land. The appraisal is therefore not equal and uniform. The owner requests the value be reduced to <strong>' +
+      fmt(r.proposed) + '</strong>, a reduction of ' + fmt(r.marketReduction) + '.';
+  }
+
+  function select(p) {
+    current = { p: p };
+    var r = TTP.valuate(p, POOL);
+    current.r = r;
+    document.getElementById("searchInput").value = p.addr;
+    closeResults();
+    renderSubject(p); renderTables(p, r); renderResult(p, r); renderNarrative(p, r);
+    document.getElementById("packet").style.display = "none";
+  }
+
+  // ---- search / autocomplete ----
+  var resultsEl = document.getElementById("searchResults");
+  function closeResults() { resultsEl.classList.remove("open"); resultsEl.innerHTML = ""; }
+  function runSearch(q) {
+    q = q.trim().toLowerCase();
+    if (q.length < 2) { closeResults(); return; }
+    var hits = [], i;
+    for (i = 0; i < POOL.length && hits.length < 8; i++) {
+      if (POOL[i].addr.toLowerCase().indexOf(q) !== -1 || POOL[i].acct.indexOf(q) !== -1) hits.push(POOL[i]);
+    }
+    if (!hits.length) { resultsEl.innerHTML = '<div class="sr-empty">No 78746 match. Try a street name (e.g. “Westlake”).</div>'; resultsEl.classList.add("open"); return; }
+    resultsEl.innerHTML = hits.map(function (h, idx) {
+      return '<div class="sr-item" data-i="' + POOL.indexOf(h) + '"><span class="a">' + esc(h.addr) + '</span><span class="v">' + fmt(h.marketValue) + '</span></div>';
+    }).join("");
+    resultsEl.classList.add("open");
+    [].slice.call(resultsEl.querySelectorAll(".sr-item")).forEach(function (el) {
+      el.addEventListener("click", function () { select(POOL[+el.getAttribute("data-i")]); });
+    });
+  }
+
+  function pickDefault() {
+    var pAcct = new URLSearchParams(location.search).get("acct");
+    if (pAcct) { var found = POOL.find(function (p) { return p.acct === pAcct; }); if (found) return found; }
+    // open on a compelling, winning example: scan a sample for the best fee
+    var best = null, bestFee = -1;
+    for (var i = 0; i < POOL.length; i += Math.ceil(POOL.length / 220)) {
+      var c = POOL[i];
+      if (c.marketValue < 300000 || c.marketValue > 1500000) continue;  // open on a relatable home
+      var rr = TTP.valuate(c, POOL);
+      if (rr.fee > bestFee) { bestFee = rr.fee; best = c; }
+    }
+    return best || POOL[0];
+  }
+
+  function init() {
+    var inp = document.getElementById("searchInput");
+    inp.addEventListener("input", function () { runSearch(inp.value); });
+    inp.addEventListener("focus", function () { if (inp.value.trim().length >= 2) runSearch(inp.value); });
+    document.addEventListener("click", function (e) { if (!e.target.closest(".search-wrap")) closeResults(); });
+    document.getElementById("genBtn").addEventListener("click", function () {
+      renderPacket(current.p, current.r);
+      var pk = document.getElementById("packet"); pk.style.display = "block"; pk.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    document.getElementById("printBtn").addEventListener("click", function () {
+      renderPacket(current.p, current.r); document.getElementById("packet").style.display = "block"; window.print();
+    });
+    select(pickDefault());
+  }
+  init();
+</script>
+<script src="reveal.js"></script>
+</body>
+</html>

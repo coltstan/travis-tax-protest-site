@@ -1,0 +1,129 @@
+/* Travis Tax Protest — shared theme (clean, light, real-estate / Zillow-inspired) */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg:        #f7f9fc;
+  --surface:   #ffffff;
+  --ink:       #10182a;
+  --ink-soft:  #46566a;
+  --muted:     #7c8a9a;
+  --line:      #e6eaf1;
+  --line-2:    #d7dee8;
+
+  --blue:      #1565e0;
+  --blue-dark: #0e4fb8;
+  --blue-soft: #eaf1fe;
+  --green:     #13855f;
+  --green-soft:#e7f5ef;
+  --amber:     #b7791f;
+  --amber-soft:#fbf2e0;
+  --red:       #c2362f;
+
+  --grad:      linear-gradient(90deg, #0a66ff, #1565e0);
+  --grad-soft: linear-gradient(160deg, #eef4ff 0%, #f3f7ff 100%);
+
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'Plus Jakarta Sans', ui-monospace, sans-serif;
+
+  --radius: 14px;
+  --shadow:    0 1px 2px rgba(16,24,42,.05), 0 8px 24px -12px rgba(16,24,42,.10);
+  --shadow-lg: 0 4px 10px rgba(16,24,42,.06), 0 24px 48px -20px rgba(16,24,42,.20);
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.narrow { max-width: 880px; }
+
+/* Nav */
+.nav { position: sticky; top: 0; z-index: 50; background: rgba(255,255,255,.85); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid var(--line); }
+.nav-inner { max-width: 1080px; margin: 0 auto; padding: 13px 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--blue); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; color: #fff; font-size: 14px; }
+.brand-name { font-family: var(--font-display); font-weight: 700; color: var(--ink); font-size: 16px; letter-spacing: -.2px; }
+.nav-links { display: flex; gap: 24px; align-items: center; }
+.nav-links a { color: var(--ink-soft); text-decoration: none; font-size: 14.5px; font-weight: 500; transition: color .15s ease; }
+.nav-links a:hover { color: var(--ink); }
+.nav-links a.active { color: var(--blue); font-weight: 600; }
+
+/* Type */
+.eyebrow { font-family: var(--font-display); font-size: 12.5px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; color: var(--blue); }
+h1, h2, h3, h4 { font-family: var(--font-display); color: var(--ink); margin: 0; letter-spacing: -.4px; }
+.display { font-size: clamp(34px, 5.4vw, 56px); font-weight: 800; line-height: 1.06; letter-spacing: -1.2px; }
+.grad { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--ink-soft); font-size: 18px; line-height: 1.6; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Cards (.glass kept as alias so existing markup works) */
+.card, .glass { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+.glass-hover { transition: transform .18s ease, box-shadow .22s ease, border-color .2s ease; }
+.glass-hover:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: var(--line-2); }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); font-weight: 600; font-size: 15px; padding: 12px 22px; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; transition: transform .12s ease, box-shadow .2s ease, background .15s ease, border-color .15s ease; }
+.btn-primary { background: var(--blue); color: #fff; box-shadow: 0 1px 2px rgba(21,101,224,.25), 0 8px 18px -8px rgba(21,101,224,.5); }
+.btn-primary:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.btn-ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--line-2); }
+.btn-ghost:hover { background: var(--bg); border-color: var(--muted); transform: translateY(-1px); }
+
+/* Pills / tags */
+.pill { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-body); font-size: 13px; font-weight: 600; padding: 6px 13px; border-radius: 999px; background: var(--blue-soft); color: var(--blue-dark); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.tag { display: inline-block; font-family: var(--font-body); font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.tag.green { background: var(--green-soft); color: var(--green); }
+.tag.blue  { background: var(--blue-soft); color: var(--blue-dark); }
+.tag.mute  { background: #eef1f5; color: var(--muted); }
+.tag.amber { background: var(--amber-soft); color: var(--amber); }
+.tag.red   { background: #fbe9e8; color: var(--red); }
+
+/* Forms */
+select.field, input.field { width: 100%; padding: 13px 14px; border-radius: 11px; border: 1px solid var(--line-2); background: var(--surface); color: var(--ink); font-family: var(--font-body); font-size: 15px; transition: border-color .15s ease, box-shadow .15s ease; }
+select.field { cursor: pointer; }
+select.field:focus, input.field:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-soft); }
+.field-label { display: block; font-size: 12.5px; font-weight: 600; letter-spacing: .02em; color: var(--ink-soft); margin-bottom: 8px; }
+
+/* Tables */
+.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+.data th, .data td { text-align: right; padding: 11px 13px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.data th:first-child, .data td:first-child { text-align: left; }
+.data thead th { font-size: 11px; letter-spacing: .03em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--bg); }
+.data tbody tr { transition: background .12s ease; }
+.data tbody tr:hover { background: var(--blue-soft); }
+.data .num { font-variant-numeric: tabular-nums; }
+.tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+
+/* Sections */
+.section { padding: 64px 0 8px; }
+.section-head { margin-bottom: 28px; }
+.section-head h2 { font-size: clamp(24px, 3.2vw, 34px); font-weight: 700; }
+.section-head p { color: var(--ink-soft); font-size: 16.5px; margin: 10px 0 0; max-width: 640px; }
+.foot { text-align: center; color: var(--muted); font-size: 13px; padding: 48px 0 56px; line-height: 1.7; border-top: 1px solid var(--line); margin-top: 56px; }
+.foot code { font-family: var(--font-mono); background: #eef1f5; padding: 2px 7px; border-radius: 6px; color: var(--ink-soft); }
+
+.fade-up { opacity: 0; transform: translateY(14px); animation: fadeUp .6s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: none; } }
+
+/* Reveal-on-scroll (class added by reveal.js only) */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); will-change: opacity, transform; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; transition: none; } }
+
+/* Brand logo holds an inline SVG */
+.brand-logo svg { width: 19px; height: 19px; display: block; }
+
+/* Photo helpers */
+.photo-band { position: relative; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+.photo-band img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.credit { color: var(--muted); font-size: 11.5px; }
+.credit a { color: var(--muted); }

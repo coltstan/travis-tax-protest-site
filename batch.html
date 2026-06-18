@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travis Tax Protest — Batch Prospecting</title>
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .hero { padding: 44px 0 8px; }
+  .hero .display { font-size: clamp(28px, 4vw, 38px); max-width: 760px; }
+  .hero .lede { font-size: 16px; max-width: 740px; margin-top: 12px; }
+
+  .card { padding: 24px; margin-top: 20px; }
+  .step { display: inline-flex; align-items: center; gap: 9px; font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .step b { width: 24px; height: 24px; border-radius: 7px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 12px; }
+  .card h3 { font-size: 19px; margin-bottom: 4px; }
+  .card .sub { color: var(--ink-soft); font-size: 14px; margin: 0 0 16px; }
+  .card .sub code { font-family: var(--font-mono); background: #eef1f5; padding: 2px 6px; border-radius: 6px; color: var(--ink-soft); font-size: 12px; }
+
+  .uploader { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  input[type=file] { display: none; }
+  .hint { font-size: 13px; color: var(--muted); }
+
+  .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .scard { border-radius: 13px; padding: 18px; border: 1px solid var(--line); background: var(--surface); }
+  .scard.rev { background: var(--blue-soft); border-color: #cfe0fb; }
+  .scard.save { background: var(--green-soft); border-color: #cdeadd; }
+  .scard .k { font-size: 11px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; }
+  .scard .v { font-family: var(--font-display); font-size: 26px; font-weight: 800; letter-spacing: -.5px; margin-top: 5px; color: var(--ink); }
+  .scard.save .v { color: var(--green); }
+
+  .tbl-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; margin-top: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { text-align: right; padding: 10px 11px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:nth-child(2), td:nth-child(2), th:nth-child(3), td:nth-child(3), th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); font-weight: 600; position: sticky; top: 0; background: #eef2f7; }
+  tbody tr:hover { background: var(--blue-soft); }
+  .rank { font-weight: 800; color: var(--blue); font-variant-numeric: tabular-nums; }
+  .num { font-variant-numeric: tabular-nums; }
+  .fee { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .badge { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; text-transform: uppercase; letter-spacing: .02em; }
+  .badge.High { background: var(--green-soft); color: var(--green); }
+  .badge.Medium { background: var(--amber-soft); color: var(--amber); }
+  .badge.Low { background: #fbe9e8; color: var(--red); }
+  .yes { display:inline-block; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--green-soft); color: var(--green); }
+  .no { display:inline-block; font-size: 10.5px; padding: 3px 9px; border-radius: 999px; background: #eef1f5; color: var(--muted); }
+
+  @media (max-width: 760px) { .summary { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-logo"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 11 12 4l8.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9.6V19h12.8V9.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11.4v4.8m0 0 1.9-1.9M12 16.2l-1.9-1.9" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">Travis Tax Protest</span></a>
+    <div class="nav-links">
+      <a href="demo.html">Engine</a>
+      <a href="batch.html" class="active">Prospecting</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero container">
+  <span class="pill"><span class="dot"></span> Bulk prospecting</span>
+  <h1 class="display" style="margin-top:16px">Drop in a list. <span class="grad">Rank your book of business.</span></h1>
+  <p class="lede">Every property runs through the full engine — auto comp-selection, the calibrated adjustment grid, and the homestead cap — then ranks by the contingency fee it would generate, so you call the best prospects first.</p>
+</header>
+
+<div class="container">
+
+  <section class="card">
+    <div class="step"><b>1</b> Load properties</div>
+    <h3>Load real Travis County data, or upload your own list</h3>
+    <p class="sub">CSV columns: <code>account, address, hood, sqft, year, quality, condition, baths, garage, pool, landValue, marketValue, cappedValue</code>. Missing columns default safely. Comps are drawn from the loaded set.</p>
+    <div class="uploader">
+      <button class="btn btn-primary" id="realBtn">Load real Westlake neighborhood (78746 · TCAD)</button>
+      <button class="btn btn-ghost" id="uploadBtn">Upload CSV</button>
+      <input type="file" id="fileInput" accept=".csv,text/csv" />
+      <span class="hint" id="fileHint">No file loaded.</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="step"><b>2</b> Ranked prospects</div>
+    <h3>Best opportunities first</h3>
+    <p class="sub">Uses each property's tax rate (this Westlake/Eanes data ≈ 1.84%); contingency fee 30% of first-year savings. Homestead-capped homes, or those at/below the comparable median, show no first-year savings.</p>
+    <div class="summary" id="summary"></div>
+    <div class="tbl-scroll">
+      <table id="resTbl"><thead><tr>
+        <th>#</th><th>Account</th><th>Address</th><th>Area</th><th>Sq ft</th>
+        <th>Market</th><th>Proposed</th><th>Reduction</th><th>Savings</th><th>Our fee</th><th>Conf.</th><th>Protest?</th>
+      </tr></thead><tbody id="resBody"></tbody></table>
+    </div>
+    <div style="margin-top:16px"><button class="btn btn-ghost" id="exportBtn">Export results (CSV)</button></div>
+  </section>
+</div>
+
+<div class="foot">
+  Demo tool · runs the same engine as the single-property view. Live data source: <code>TCAD appraisal-roll export</code>.<br/>Not legal or tax advice.
+</div>
+
+<script src="neighborhood-real.js"></script>
+<script src="engine.js"></script>
+<script>
+  var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+  var fmt0 = function (n) { return Math.round(n).toLocaleString("en-US"); };
+  var rows = [];
+
+  function num(v, d) { var n = parseFloat(String(v).replace(/[$,]/g, "")); return isNaN(n) ? d : n; }
+
+  function parseCSV(text) {
+    var lines = text.trim().split(/\r?\n/);
+    var H = lines[0].split(",").map(function (h) { return h.trim().toLowerCase(); });
+    var idx = function (name) { return H.indexOf(name); };
+    var get = function (c, name) { var i = idx(name); return i >= 0 ? (c[i] || "").trim() : ""; };
+    var out = [];
+    for (var i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      var c = lines[i].split(",");
+      var market = num(get(c, "marketvalue") || get(c, "market") || get(c, "appraised") || get(c, "assessed"), 0);
+      var zip = get(c, "zip");
+      out.push({
+        acct: get(c, "account") || get(c, "acct"), owner: get(c, "owner"),
+        addr: get(c, "address") || get(c, "addr"), zip: zip, hood: get(c, "hood") || zip || "—",
+        sqft: num(get(c, "sqft"), 0), year: get(c, "year"),
+        quality: num(get(c, "quality"), 3), condition: num(get(c, "condition"), 3),
+        baths: num(get(c, "baths"), 2), garage: num(get(c, "garage"), 2), pool: num(get(c, "pool"), 0) ? 1 : 0,
+        landValue: num(get(c, "landvalue") || get(c, "land"), 0),
+        marketValue: market, cappedValue: num(get(c, "cappedvalue") || get(c, "capped"), 0) || market
+      });
+    }
+    return out.filter(function (p) { return p.acct && p.sqft > 0 && p.marketValue > 0; });
+  }
+
+  function load(list, label) {
+    if (!list.length) { document.getElementById("fileHint").textContent = "No valid rows found — check the column headers."; return; }
+    rows = list.map(function (p) { return { p: p, r: TTP.valuate(p, list) }; }).sort(function (a, b) { return b.r.fee - a.r.fee; });
+    document.getElementById("fileHint").textContent = label + " — " + list.length + " properties loaded.";
+    render();
+  }
+
+  function render() {
+    var cand = rows.filter(function (x) { return x.r.win; });
+    var pipeline = cand.reduce(function (s, x) { return s + x.r.fee; }, 0);
+    var clientSave = cand.reduce(function (s, x) { return s + x.r.savings; }, 0);
+    document.getElementById("summary").innerHTML =
+      '<div class="scard"><div class="k">Properties</div><div class="v">' + rows.length + '</div></div>' +
+      '<div class="scard"><div class="k">Protest candidates</div><div class="v">' + cand.length + '</div></div>' +
+      '<div class="scard rev"><div class="k">Pipeline revenue (yr 1)</div><div class="v">' + fmt(pipeline) + '</div></div>' +
+      '<div class="scard save"><div class="k">Total client savings</div><div class="v">' + fmt(clientSave) + '</div></div>';
+    document.getElementById("resBody").innerHTML = rows.map(function (x, i) {
+      var p = x.p, r = x.r;
+      return '<tr>' +
+        '<td class="rank">' + (i + 1) + '</td><td>' + p.acct + '</td><td>' + p.addr.split(",")[0] + '</td><td>' + p.hood + '</td>' +
+        '<td class="num">' + fmt0(p.sqft) + '</td><td class="num">' + fmt(p.marketValue) + '</td><td class="num">' + fmt(r.proposed) + '</td>' +
+        '<td class="num">' + (r.marketReduction > 0 ? fmt(r.marketReduction) : "—") + '</td>' +
+        '<td class="num">' + (r.savings > 0 ? fmt(r.savings) : "—") + '</td>' +
+        '<td class="fee">' + (r.fee > 0 ? fmt(r.fee) : "—") + '</td>' +
+        '<td><span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span></td>' +
+        '<td>' + (r.win ? '<span class="yes">Protest</span>' : '<span class="no">Skip</span>') + '</td></tr>';
+    }).join("");
+  }
+
+  function exportCSV() {
+    if (!rows.length) return;
+    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,confidence,protest";
+    var body = rows.map(function (x, i) {
+      var p = x.p, r = x.r;
+      return [i + 1, p.acct, '"' + p.addr + '"', p.hood, p.sqft, Math.round(p.marketValue), Math.round(r.proposed),
+        Math.round(r.marketReduction), Math.round(r.taxableReduction), Math.round(r.savings), Math.round(r.fee),
+        r.confidence.level, r.win ? "yes" : "no"].join(",");
+    }).join("\n");
+    var blob = new Blob([head + "\n" + body], { type: "text/csv" });
+    var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "protest-prospects.csv"; a.click();
+  }
+
+  document.getElementById("uploadBtn").addEventListener("click", function () { document.getElementById("fileInput").click(); });
+  document.getElementById("fileInput").addEventListener("change", function (e) {
+    var f = e.target.files[0]; if (!f) return;
+    var reader = new FileReader(); reader.onload = function (ev) { load(parseCSV(ev.target.result), f.name); }; reader.readAsText(f);
+  });
+  document.getElementById("realBtn").addEventListener("click", function () { load(window.NB_REAL.slice(), "Westlake 78746 — real TCAD data"); });
+  document.getElementById("exportBtn").addEventListener("click", exportCSV);
+
+  load(window.NB_REAL.slice(), "Westlake 78746 — real TCAD data");
+</script>
+<script src="reveal.js"></script>
+</body>
+</html>

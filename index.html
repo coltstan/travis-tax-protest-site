@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Travis Tax Protest</title>
+<link rel="stylesheet" href="theme.css" />
+<style>
+  .hero { position: relative; min-height: 600px; display: flex; align-items: center; overflow: hidden; }
+  .hero-bg { position: absolute; inset: 0; background-image: url(images/lake-austin.jpg); background-size: cover; background-position: center 55%; transform: scale(1.04); }
+  .hero-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,18,36,.62) 0%, rgba(8,18,36,.42) 45%, rgba(8,18,36,.66) 100%); }
+  .hero-content { position: relative; text-align: center; padding: 86px 0 96px; width: 100%; }
+  .hero-content .pill { background: rgba(255,255,255,.16); color: #fff; backdrop-filter: blur(6px); margin-bottom: 22px; }
+  .hero-content .pill .dot { background: #7ee2b8; }
+  .hero-content h1 { color: #fff; max-width: 840px; margin: 0 auto; text-shadow: 0 2px 24px rgba(0,0,0,.25); }
+  .hero-content h1 .grad { background: linear-gradient(90deg,#9ed0ff,#d9ecff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-content .lede { color: #e6eefb; max-width: 560px; margin: 20px auto 0; text-shadow: 0 1px 12px rgba(0,0,0,.3); }
+  .search { max-width: 580px; margin: 32px auto 0; display: flex; gap: 8px; background: #fff; border-radius: 14px; padding: 8px; box-shadow: 0 20px 50px -16px rgba(0,0,0,.5); }
+  .search input { flex: 1; border: none; outline: none; font-family: var(--font-body); font-size: 16px; padding: 12px 14px; color: var(--ink); background: transparent; }
+  .search .btn { white-space: nowrap; }
+  .search { position: relative; }
+  .search-results { position: absolute; left: 0; right: 0; top: calc(100% + 8px); background: #fff; border-radius: 12px; box-shadow: 0 20px 50px -16px rgba(0,0,0,.5); overflow: hidden; display: none; text-align: left; z-index: 30; }
+  .search-results.open { display: block; }
+  .sr-item { padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+  .sr-item:last-child { border-bottom: none; }
+  .sr-item:hover { background: var(--blue-soft); }
+  .sr-item .a { font-size: 14px; color: var(--ink); font-weight: 500; }
+  .sr-item .v { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .sr-empty { padding: 13px 16px; color: var(--muted); font-size: 13.5px; text-align: left; }
+  .hero-content .tiny { margin-top: 13px; font-size: 13px; color: #cdd9ee; }
+
+  .trust { display: flex; margin-top: -44px; position: relative; z-index: 2; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg); overflow: hidden; }
+  .trust .t { flex: 1; padding: 24px 18px; text-align: center; border-right: 1px solid var(--line); }
+  .trust .t:last-child { border-right: none; }
+  .trust .n { font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -.5px; }
+  .trust .l { color: var(--muted); font-size: 13px; margin-top: 5px; }
+
+  .tools { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+  a.tool { padding: 28px; text-decoration: none; color: inherit; display: flex; flex-direction: column; }
+  .tool .ic { width: 40px; height: 40px; border-radius: 10px; background: var(--blue-soft); color: var(--blue); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 16px; margin-bottom: 18px; }
+  .tool h3 { font-size: 19px; margin-bottom: 8px; }
+  .tool p { color: var(--ink-soft); font-size: 14.5px; flex: 1; margin: 0 0 16px; }
+  .tool .go { font-weight: 600; font-size: 14.5px; color: var(--blue); }
+  .tool .go::after { content: " →"; transition: margin .18s ease; }
+  a.tool:hover .go::after { margin-left: 4px; }
+
+  .split { display: grid; grid-template-columns: 1.05fr .95fr; gap: 36px; align-items: center; }
+  .split .photo-band { aspect-ratio: 4 / 3; }
+  .split h2 { font-size: clamp(24px, 3.2vw, 32px); }
+  .split p { color: var(--ink-soft); font-size: 16px; margin: 14px 0 0; }
+  .split ul { list-style: none; padding: 0; margin: 18px 0 0; }
+  .split li { padding: 8px 0 8px 28px; position: relative; color: var(--ink-soft); font-size: 15px; }
+  .split li::before { content: "✓"; position: absolute; left: 0; color: var(--green); font-weight: 800; }
+
+  .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
+  .st .n { font-family: var(--font-display); font-weight: 800; font-size: 15px; color: #fff; background: var(--blue); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; margin-bottom: 12px; }
+  .st h4 { font-size: 15.5px; margin-bottom: 5px; }
+  .st p { color: var(--ink-soft); font-size: 14px; margin: 0; }
+
+  .model { padding: 28px 30px; margin-top: 28px; display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; background: var(--grad-soft); border-color: #dbe6fb; }
+  .model .badge { font-family: var(--font-display); font-weight: 700; font-size: 13px; color: var(--blue-dark); background: #fff; border: 1px solid #cfe0fb; padding: 9px 15px; border-radius: 10px; white-space: nowrap; }
+  .model p { margin: 0; color: var(--ink-soft); font-size: 15px; }
+  .model strong { color: var(--ink); }
+
+  .cta-band { position: relative; margin-top: 64px; border-radius: 18px; overflow: hidden; box-shadow: var(--shadow-lg); }
+  .cta-band img { width: 100%; height: 380px; object-fit: cover; object-position: center 60%; display: block; }
+  .cta-band .ov { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,20,42,.78), rgba(8,20,42,.4)); display: flex; align-items: center; }
+  .cta-band .ov .inner { padding: 0 8%; max-width: 560px; }
+  .cta-band h2 { color: #fff; font-size: 32px; }
+  .cta-band p { color: #d9e6fb; margin: 12px 0 24px; font-size: 16px; }
+  .cta-band .btn-primary { background: #fff; color: var(--blue-dark); }
+
+  @media (max-width: 760px) {
+    .trust { flex-direction: column; margin-top: 24px; } .trust .t { border-right: none; border-bottom: 1px solid var(--line); }
+    .tools { grid-template-columns: 1fr; } .steps { grid-template-columns: 1fr 1fr; gap: 22px; }
+    .model { grid-template-columns: 1fr; } .search { flex-direction: column; } .split { grid-template-columns: 1fr; }
+    .cta-band img { height: 460px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html"><span class="brand-logo"><svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 11 12 4l8.5 7" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.6 9.6V19h12.8V9.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 11.4v4.8m0 0 1.9-1.9M12 16.2l-1.9-1.9" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="brand-name">Travis Tax Protest</span></a>
+    <div class="nav-links">
+      <a href="demo.html">Engine</a>
+      <a href="batch.html">Prospecting</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="container">
+      <span class="pill fade-up"><span class="dot"></span> Travis County · Austin, TX</span>
+      <h1 class="display fade-up" style="animation-delay:.05s">Your home is probably <span class="grad">over-appraised.</span></h1>
+      <p class="lede fade-up" style="animation-delay:.12s">We pull the county's own data, build the case comparable homes can't argue with, and file the protest. You only pay if you save.</p>
+      <form class="search fade-up" style="animation-delay:.18s" onsubmit="return goSearch();">
+        <input type="text" id="heroSearch" placeholder="Enter a Travis County address (ZIP 78746)" aria-label="Property address" autocomplete="off" />
+        <button type="submit" class="btn btn-primary">Check my taxes</button>
+        <div class="search-results" id="heroResults"></div>
+      </form>
+      <div class="tiny fade-up" style="animation-delay:.22s">Free estimate · no obligation · most residential protests win a reduction</div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="trust">
+    <div class="t"><div class="n">180k+</div><div class="l">protests filed in Travis County / yr</div></div>
+    <div class="t"><div class="n">Most win</div><div class="l">residential protests get a reduction</div></div>
+    <div class="t"><div class="n">Every year</div><div class="l">your property is re-protested annually</div></div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="eyebrow">The toolkit</span>
+      <h2>Two tools, one engine</h2>
+      <p>Evaluate any single property, or prospect a whole list at once — both built on the same Travis County valuation engine.</p>
+    </div>
+    <div class="tools">
+      <a class="card glass-hover tool" href="demo.html">
+        <div class="ic">1</div><h3>Protest engine</h3>
+        <p>Enter a property and get auto-selected comparables, a transparent adjustment grid, the homestead-cap math, and a ready-to-file Form 50-132.</p>
+        <span class="go">Open the engine</span>
+      </a>
+      <a class="card glass-hover tool" href="batch.html">
+        <div class="ic">2</div><h3>Batch prospecting</h3>
+        <p>Drop in a client list and get a ranked book of business — every property scored by the reduction and fee it would generate.</p>
+        <span class="go">Rank a list</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="split">
+      <div class="photo-band"><img src="images/lakefront-homes.jpg" alt="Lakefront homes on Lake Austin" loading="lazy" /></div>
+      <div>
+        <span class="eyebrow">Built for Travis County</span>
+        <h2>Real county data. Real comparables.</h2>
+        <p>Every analysis runs on the Travis Central Appraisal District's own roll — the same numbers the county uses against you.</p>
+        <ul>
+          <li>Auto-selects the best comparable homes nearby</li>
+          <li>Adjusts for size, age, quality, condition, baths, garage, pool &amp; land</li>
+          <li>Accounts for the Texas 10% homestead cap</li>
+          <li>Tells you honestly whether a protest will actually save you money</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <span class="eyebrow">How it works</span>
+      <h2>From an address to a filed protest</h2>
+    </div>
+    <div class="steps">
+      <div class="st"><div class="n">1</div><h4>Enter your address</h4><p>We pull your property's record straight from the county's own roll.</p></div>
+      <div class="st"><div class="n">2</div><h4>We build the case</h4><p>Comparable homes + an adjustment grid prove you're over-assessed (§41.43(b)(3)).</p></div>
+      <div class="st"><div class="n">3</div><h4>File the protest</h4><p>Get a ready-to-file Notice of Protest (Form 50-132) before the May 15 deadline.</p></div>
+      <div class="st"><div class="n">4</div><h4>Pay only if you save</h4><p>You keep the lion's share of every dollar knocked off your bill — every year.</p></div>
+    </div>
+  </section>
+
+  <div class="cta-band">
+    <img src="images/austin-hills.jpg" alt="The Colorado River winding through the Austin hill country" loading="lazy" />
+    <div class="ov"><div class="inner">
+      <h2>See the engine work.</h2>
+      <p>Pick a real Austin property and watch it build the case in seconds — on real county data.</p>
+      <a class="btn btn-primary" href="demo.html">Open the engine</a>
+    </div></div>
+  </div>
+</div>
+
+<div class="foot">
+  Travis Tax Protest · coltons@latierratx.com · Austin, TX<br/>
+  Not legal or tax advice. Figures are illustrative.<br/>
+  <span class="credit">Photos: Lake Austin © G. Lamar Yancy; Austin lakefront © Stuart Seeger; Pennybacker view © Tony Webster — <a href="https://creativecommons.org/licenses/by/2.0/">CC BY</a>/<a href="https://creativecommons.org/licenses/by-sa/2.0/">BY-SA</a> via Wikimedia Commons.</span>
+</div>
+
+<script src="properties.js"></script>
+<script>
+  (function () {
+    var POOL = window.PROPERTIES || [];
+    var inp = document.getElementById("heroSearch"), res = document.getElementById("heroResults");
+    var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+    var fmt = function (n) { return "$" + Math.round(n).toLocaleString("en-US"); };
+    function close() { res.classList.remove("open"); res.innerHTML = ""; }
+    function run(q) {
+      q = q.trim().toLowerCase();
+      if (q.length < 2) { close(); return; }
+      var hits = [], i;
+      for (i = 0; i < POOL.length && hits.length < 7; i++) { if (POOL[i].addr.toLowerCase().indexOf(q) !== -1) hits.push(POOL[i]); }
+      if (!hits.length) { res.innerHTML = '<div class="sr-empty">No match in ZIP 78746 yet — try a street like &ldquo;Westlake&rdquo;.</div>'; res.classList.add("open"); return; }
+      res.innerHTML = hits.map(function (h) { return '<div class="sr-item" data-acct="' + h.acct + '"><span class="a">' + esc(h.addr) + '</span><span class="v">' + fmt(h.marketValue) + '</span></div>'; }).join("");
+      res.classList.add("open");
+      [].slice.call(res.querySelectorAll(".sr-item")).forEach(function (el) { el.addEventListener("click", function () { location = "demo.html?acct=" + el.getAttribute("data-acct"); }); });
+    }
+    inp.addEventListener("input", function () { run(inp.value); });
+    document.addEventListener("click", function (e) { if (!e.target.closest(".search")) close(); });
+    window.goSearch = function () { var f = res.querySelector(".sr-item"); location = f ? "demo.html?acct=" + f.getAttribute("data-acct") : "demo.html"; return false; };
+  })();
+</script>
+<script src="reveal.js"></script>
+</body>
+</html>
