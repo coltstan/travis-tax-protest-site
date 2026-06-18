@@ -200,7 +200,7 @@
 </div>
 
 <script src="properties.js?v=2"></script>
-<script src="engine.js"></script>
+<script src="engine.js?v=2"></script>
 <script>
   var POOL = window.PROPERTIES;
   var QUAL = TTP.QUAL, COND = TTP.COND;
@@ -280,9 +280,10 @@
     document.getElementById("verdictBox").innerHTML = r.win
       ? '<div class="verdict win"><div class="tag">Protest recommended</div><div class="big">' + fmt(r.savings) + '</div><div class="lil">estimated first-year tax savings</div></div>'
       : '<div class="verdict nowin"><div class="tag">No first-year savings</div><div class="big">' + fmt(0) + '</div><div class="lil">' + (r.cappedNoSavings ? "over-assessed, but the homestead cap blocks savings this year" : "appraised at or below the comparable median") + '</div></div>';
+    var reasons = (r.confidence.reasons && r.confidence.reasons.length) ? ' · &#9888; ' + r.confidence.reasons.join(", ") : '';
     document.getElementById("confBox").innerHTML =
       'Confidence <span class="badge ' + r.confidence.level + '">' + r.confidence.level + '</span>' +
-      '<span> · comp spread ' + r.confidence.covPct.toFixed(1) + '%, avg adjustment ' + r.confidence.grossPct.toFixed(1) + '%</span>';
+      '<span> · ' + r.comps.length + ' comps, spread ' + r.confidence.covPct.toFixed(1) + '%' + (r.outliersDropped ? ', ' + r.outliersDropped + ' outlier' + (r.outliersDropped > 1 ? 's' : '') + ' dropped' : '') + reasons + '</span>';
     document.getElementById("breakdown").innerHTML =
       '<div class="brow"><span class="bk">Market (appraised) value</span><span class="bv">' + fmt(r.marketValue) + '</span></div>' +
       '<div class="brow"><span class="bk">Proposed value (comp median)</span><span class="bv">' + fmt(r.proposed) + '</span></div>' +

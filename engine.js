@@ -158,10 +158,14 @@
   }
   function matchLabel(d) { var x = d % 1000; return x < 18 ? "Strong" : x < 45 ? "Good" : "Fair"; }
 
-  function selectComps(subject, pool, n) {
+  function quantile(sorted, q) {
+    var pos = (sorted.length - 1) * q, b = Math.floor(pos), rest = pos - b;
+    return sorted[b + 1] !== undefined ? sorted[b] + rest * (sorted[b + 1] - sorted[b]) : sorted[b];
+  }
+  function rankCandidates(subject, pool) {
     return pool.filter(function (p) { return p.acct !== subject.acct; })
       .map(function (p) { return { p: p, d: distance(subject, p) }; })
-      .sort(function (a, b) { return a.d - b.d; }).slice(0, n);
+      .sort(function (a, b) { return a.d - b.d; });
   }
 
   function adjustComp(subject, comp, rates) {
@@ -182,24 +186,42 @@
     return a;
   }
 
-  function confidence(adjVals, grosses, median0, count) {
+  function confidence(adjVals, grosses, median0, count, sameHood, want) {
     var covPct = (stdev(adjVals) / mean(adjVals)) * 100;
     var grossPct = (mean(grosses) / median0) * 100;
     var level = (count >= 4 && covPct < 5 && grossPct < 10) ? "High"
       : (covPct < 9 && grossPct < 18) ? "Medium" : "Low";
-    return { level: level, covPct: covPct, grossPct: grossPct };
+    var reasons = [];
+    if (sameHood < Math.min(4, want)) { reasons.push("few same-neighborhood comps"); if (level === "High") level = "Medium"; }
+    if (count < 4) { reasons.push("only " + count + " comparable" + (count === 1 ? "" : "s")); level = "Low"; }
+    if (grossPct >= 18) reasons.push("large adjustments");
+    return { level: level, covPct: covPct, grossPct: grossPct, sameHood: sameHood, count: count, reasons: reasons };
   }
 
   function valuate(subject, pool, cfg) {
     cfg = cfg || CONFIG;
     var cal = calibrate(subject, pool, cfg);
     var rates = cal.rates;
-    var comps = selectComps(subject, pool, cfg.compCount).map(function (s) {
+
+    // 1) rank candidates (distance prefers same neighborhood + class + size/age); take a buffer
+    var cands = rankCandidates(subject, pool).slice(0, cfg.compCount + 8).map(function (s) {
       return Object.assign({}, s.p, { match: matchLabel(s.d), adj: adjustComp(subject, s.p, rates) });
     });
+    // 2) drop adjusted-value outliers (1.5*IQR fence) when there are enough candidates
+    var kept = cands, dropped = 0;
+    if (cands.length >= 5) {
+      var sv = cands.map(function (c) { return c.adj.adjustedValue; }).sort(function (a, b) { return a - b; });
+      var q1 = quantile(sv, 0.25), q3 = quantile(sv, 0.75), iqr = q3 - q1;
+      var lo = q1 - 1.5 * iqr, hi = q3 + 1.5 * iqr;
+      var f = cands.filter(function (c) { return c.adj.adjustedValue >= lo && c.adj.adjustedValue <= hi; });
+      if (f.length >= 3) { dropped = cands.length - f.length; kept = f; }
+    }
+    // 3) keep the nearest compCount survivors
+    var comps = kept.slice(0, cfg.compCount);
 
     var adjVals = comps.map(function (c) { return c.adj.adjustedValue; });
     var proposed = median(adjVals);
+    var sameHood = comps.filter(function (c) { return c.hood === subject.hood; }).length;
 
     var capped = (subject.cappedValue != null) ? subject.cappedValue : subject.marketValue;
     var taxableNow = Math.min(capped, subject.marketValue);
@@ -215,14 +237,14 @@
       comps: comps, proposed: proposed,
       marketValue: subject.marketValue, cappedValue: capped,
       marketReduction: marketReduction, taxableReduction: taxableReduction,
-      savings: savings, fee: fee, net: savings - fee,
+      savings: savings, fee: fee, net: savings - fee, taxRate: rate, outliersDropped: dropped,
       win: taxableReduction > 0, cappedNoSavings: marketReduction > 0 && taxableReduction === 0,
-      confidence: confidence(adjVals, comps.map(function (c) { return c.adj.gross; }), proposed, comps.length)
+      confidence: confidence(adjVals, comps.map(function (c) { return c.adj.gross; }), proposed, comps.length, sameHood, cfg.compCount)
     };
   }
 
   global.TTP = {
     CONFIG: CONFIG, QUAL: QUAL, COND: COND,
-    valuate: valuate, calibrate: calibrate, selectComps: selectComps, median: median
+    valuate: valuate, calibrate: calibrate, rankCandidates: rankCandidates, median: median
   };
 })(typeof window !== "undefined" ? window : this);
