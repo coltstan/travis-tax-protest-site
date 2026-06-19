@@ -214,16 +214,23 @@
     }).join("");
   }
 
+  function csvq(s) { return '"' + String(s).replace(/"/g, '""') + '"'; }
+  function pitchFor(p, r) {
+    var pct = (r.marketReduction / r.marketValue * 100).toFixed(1);
+    if (r.win) return "Travis County appraises this home at " + fmt(p.marketValue) + " — about " + pct + "% above comparable homes nearby. We can likely cut about " + fmt(r.savings) + "/yr off the property-tax bill; you pay nothing unless we win.";
+    if (r.cappedNoSavings) return "Appraised " + pct + "% above comparable homes. The homestead cap blocks year-1 savings, but a protest restrains future increases (~" + fmt(r.futureSavings) + "/yr once the cap catches up).";
+    return "";
+  }
   function exportCSV() {
     var view = rows.filter(matchFilter);
     if (!view.length) return;
-    var head = "rank,account,address,hood,sqft,market_value,proposed,market_reduction,taxable_reduction,savings,fee,future_savings,cap_status,cap_gap_pct,confidence,status";
+    var head = "rank,account,owner,address,hood,sqft,market_value,proposed,over_assessed_pct,market_reduction,taxable_reduction,savings,fee,future_savings,cap_status,cap_gap_pct,confidence,status,pitch";
     var body = view.map(function (x, i) {
       var p = x.p, r = x.r;
-      return [i + 1, p.acct, '"' + p.addr + '"', p.hood, p.sqft, Math.round(p.marketValue), Math.round(r.proposed),
-        Math.round(r.marketReduction), Math.round(r.taxableReduction), Math.round(r.savings), Math.round(r.fee),
-        Math.round(r.futureSavings), x.uncapped ? "uncapped" : "capped", Math.round(x.capGapPct),
-        r.confidence.level, r.win ? "protest" : r.cappedNoSavings ? "future" : "skip"].join(",");
+      return [i + 1, p.acct, csvq(p.owner || ""), csvq(p.addr), p.hood, p.sqft, Math.round(p.marketValue), Math.round(r.proposed),
+        (r.marketReduction / r.marketValue * 100).toFixed(1), Math.round(r.marketReduction), Math.round(r.taxableReduction),
+        Math.round(r.savings), Math.round(r.fee), Math.round(r.futureSavings), x.uncapped ? "uncapped" : "capped", Math.round(x.capGapPct),
+        r.confidence.level, r.win ? "protest" : r.cappedNoSavings ? "future" : "skip", csvq(pitchFor(p, r))].join(",");
     }).join("\n");
     var blob = new Blob([head + "\n" + body], { type: "text/csv" });
     var a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "protest-prospects-" + filterMode + ".csv"; a.click();
